@@ -18,20 +18,18 @@ using AppAutoClick.Helper;
 
 namespace AppAutoClick
 {
-    public partial class FrAutoClick : Form
+    public partial class FrTest : Form
     {
         private bool run = false;
         private long count = 0;
-        private string softwareUsername = ConfigurationManager.AppSettings["SoftwareUsername"];
-        private string softwarePassword = ConfigurationManager.AppSettings["SoftwarePassword"];
         private string pathFileExe = ConfigurationManager.AppSettings["PathFileExe"];
         private string pathCredential = ConfigurationManager.AppSettings["PathCredential"];
         private string spreadsheetId = ConfigurationManager.AppSettings["SpreadsheetId"];
         private string sheetName = ConfigurationManager.AppSettings["SheetName"];
         //private string nameWindowMain = "Calculator";
-        private string nameWindowLogin = " Login to Pathogen Asset Control System";
+        private string nameWindowMain = "frmTest_bioAPI";
 
-        public FrAutoClick()
+        public FrTest()
         {
             InitializeComponent();
             SetCountLabel(this.count);
@@ -69,7 +67,7 @@ namespace AppAutoClick
                 MessageBox.Show(messageError, "Error", errorButtons);
             }
         }
-        
+
         private void DisableControls()
         {
             btnStart.Enabled = false;
@@ -79,9 +77,9 @@ namespace AppAutoClick
             btnStart.Enabled = true;
         }
 
-        private bool IsNotOpenSoftware(string classWindow, string nameWindow)
+        private bool IsNotOpenSoftware(string nameWindow)
         {
-            IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
+            IntPtr hwnd = Win32.FindWindow(null, nameWindow);
             return hwnd == IntPtr.Zero;
         }
         private string ValidData()
@@ -103,57 +101,73 @@ namespace AppAutoClick
         {
             while (this.run)
             {
-                if (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
-                {
-                    System.Diagnostics.Process.Start(pathFileExe);
-                }
-                else
-                {
-                    IntPtr windowLogin = FindWindow(null, nameWindowLogin);
+                IntPtr hwnd = FindWindow(null, "UltraViewer 6.4 - Free");
 
-                    //var paneLogins = EnumAllWindows(windowLogin, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1").ToList();
+                var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r14_ad1").ToList();
 
-                    //IntPtr paneLogin = FindWindowEx(paneLogins[4], IntPtr.Zero, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", "PACS");
+                IntPtr text = FindWindowEx(panes[14], IntPtr.Zero, "WindowsForms10.EDIT.app.0.34f5582_r14_ad1", null);
 
-                    //var paneLoginInputs = EnumAllWindows(paneLogin, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
+                SendMessage(text, WM_SETTEXT, 0, "0011");
+//                if (IsNotOpenSoftware(nameWindowMain))
+//                {
+//                    System.Diagnostics.Process.Start(pathFileExe);
+//                    //this.run = false;
+//                    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
+//                    //{
+//                    //    System.Diagnostics.Process.Start(pathFileExe);
+//                    //}
+//                }
+//                else
+//                {
+//                    #region app biomini
+//#if true
 
-                    //var inputUsername = FindWindowEx(paneLoginInputs[1], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
-                    //var inputPassword = FindWindowEx(paneLoginInputs[0], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
+//                    IntPtr hwnd = FindWindow(null, nameWindowMain);
 
-                    var inputUsername = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList()[1];
-                    var inputPassword = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList()[0];
+//                    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
 
-                    SendMessage(inputUsername, WM_SETTEXT, 0, softwareUsername);
-                    SendMessage(inputPassword, WM_SETTEXT, 0, softwarePassword);
+//                    if (panes.Count > 2)
+//                    {
+//                        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
 
-                    IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
+//                        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
 
-                    SendMessage(btnOk, BN_CLICKED, 0, IntPtr.Zero);
+//                        Thread.Sleep(2000);
 
-                    //if(panes.Count > 2)
-                    //{
-                    //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+//                        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
 
-                    //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+//                        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
 
-                    //    Thread.Sleep(2000);
+//                        Thread.Sleep(2000);
 
-                    //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+//                        var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
 
-                    //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+//                        if (dataExcel.Count > 0)
+//                        {
+//                            var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
+//                            googleSheetsHelper.WirteDatas();
+//                        }
+//                    }
 
-                    //    Thread.Sleep(2000);
+//                    //var hwndObject = new HwndObject(hwndChild);
+//                    //hwndObject.Click();
+//#endif
+//                    #endregion
 
-                    //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
+//                    #region calculator
+//#if false
+//                    IntPtr hwnd = FindWindow(null, nameWindowMain);
 
-                    //    if(dataExcel.Count > 0)
-                    //    {
-                    //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-                    //        googleSheetsHelper.WirteDatas();
-                    //    }
-                    //}
+//                    var childs = GetChildWindows(hwnd).ToList();
 
-                }
+//                    IntPtr hwndChild = FindWindowEx(childs[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+
+//                    //send BN_CLICKED message
+//                    Win32.SendMessage(hwndChild, Win32.BN_CLICKED, 0, IntPtr.Zero);
+//#endif
+//                    #endregion
+
+//                }
 
 
                 //this.run = false;

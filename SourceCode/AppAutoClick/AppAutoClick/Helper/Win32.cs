@@ -32,6 +32,9 @@ namespace AppAutoClick.Helper
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, string lParam);
+
         /// <summary>
         /// The FindWindowEx API
         /// </summary>

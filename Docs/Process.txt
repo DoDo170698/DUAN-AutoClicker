@@ -1,0 +1,4 @@
+login => jounal => search engine => online catalouge => execute => export
+
+- position (x-y): 
+	+ jounal: 160-40
