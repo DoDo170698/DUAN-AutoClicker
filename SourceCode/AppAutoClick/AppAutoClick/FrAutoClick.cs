@@ -106,6 +106,10 @@ namespace AppAutoClick
                 if (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
                 {
                     System.Diagnostics.Process.Start(pathFileExe);
+                    while(IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                    {
+                        Thread.Sleep(2000);
+                    }
                 }
                 else
                 {
@@ -120,15 +124,23 @@ namespace AppAutoClick
                     //var inputUsername = FindWindowEx(paneLoginInputs[1], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
                     //var inputPassword = FindWindowEx(paneLoginInputs[0], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
 
-                    var inputUsername = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList()[1];
-                    var inputPassword = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList()[0];
+                    var inputLogins = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList();
+                    var inputUsername = inputLogins[2];
+                    var inputPassword = inputLogins[0];
 
                     SendMessage(inputUsername, WM_SETTEXT, 0, softwareUsername);
+                    Thread.Sleep(2000);
                     SendMessage(inputPassword, WM_SETTEXT, 0, softwarePassword);
+                    Thread.Sleep(2000);
+
 
                     IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
+                    IntPtr btnCancel = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Cancel");
 
-                    SendMessage(btnOk, BN_CLICKED, 0, IntPtr.Zero);
+
+                    SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                    SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
+                    //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
 
                     //if(panes.Count > 2)
                     //{
@@ -155,8 +167,8 @@ namespace AppAutoClick
 
                 }
 
-
-                //this.run = false;
+                if(this.count==1)
+                    this.run = false;
                 this.count++;
                 MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                     SetCountLabel(this.count);
