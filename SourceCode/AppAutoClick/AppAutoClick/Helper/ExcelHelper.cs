@@ -1,4 +1,8 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -11,20 +15,135 @@ using System.Threading.Tasks;
 
 namespace AppAutoClick.Helper
 {
-    public static class ExcelHelper
+    public class ExcelHelper
     {
-        public static List<ExpandoObject> Datas { get; set; }
+        static string[] Scopes = { SheetsService.Scope.Spreadsheets };
+        static string ApplicationName = "GoogleSheetsHelper";
+        private readonly SheetsService _sheetsService;
+        private readonly string _spreadsheetId;
+        private readonly string _fileName;
+        private readonly int _lastRow;
+        private readonly GoogleSheetParameters _googleSheetParameters;
 
-        public static List<ExpandoObject> ReadFileExcel(string fileName)
+        public ExcelHelper(string credentialFileName, string spreadsheetId, string sheetName, string fileName)
+        {
+            var credential = GoogleCredential.FromStream(new FileStream(credentialFileName, FileMode.Open)).CreateScoped(Scopes);
+
+            _sheetsService = new SheetsService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            _spreadsheetId = spreadsheetId;
+            _fileName = fileName;
+
+            _googleSheetParameters = new GoogleSheetParameters();
+            _googleSheetParameters.SheetName = sheetName;
+
+            _lastRow = GetLastRow(_googleSheetParameters);
+            _googleSheetParameters.RangeRowStart = _lastRow > 0 ? 1 : 0;
+            _googleSheetParameters.FirstRowIsHeaders = _lastRow <= 0;
+        }
+
+        public int GetLastRow(GoogleSheetParameters googleSheetParameters)
         {
             try
             {
-                Datas = new List<ExpandoObject>();
+                googleSheetParameters = MakeGoogleSheetDataRangeColumnsZeroBased(googleSheetParameters);
+                var range = $"{googleSheetParameters.SheetName}";
+                SpreadsheetsResource.ValuesResource.GetRequest request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+
+                var response = request.Execute();
+                if (response.Values != null)
+                    return response.Values.Count;
+                else
+                    return 0;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        private string GetColumnName(int index)
+        {
+            const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var value = "";
+
+            if (index >= letters.Length)
+                value += letters[index / letters.Length - 1];
+
+            value += letters[index % letters.Length];
+            return value;
+        }
+        private int GetSheetId(SheetsService service, string spreadSheetId, string spreadSheetName)
+        {
+            var spreadsheet = service.Spreadsheets.Get(spreadSheetId).Execute();
+            var sheet = spreadsheet.Sheets.FirstOrDefault(s => s.Properties.Title == spreadSheetName);
+            int sheetId = (int)sheet.Properties.SheetId;
+            return sheetId;
+        }
+
+        private GoogleSheetParameters MakeGoogleSheetDataRangeColumnsZeroBased(GoogleSheetParameters googleSheetParameters)
+        {
+            googleSheetParameters.RangeColumnStart = googleSheetParameters.RangeColumnStart;
+            googleSheetParameters.RangeColumnEnd = googleSheetParameters.RangeColumnEnd;
+            return googleSheetParameters;
+        }
+
+        public void DeleteRowGoogleSheet(int sheetId)
+        {
+            if(_lastRow > 1)
+            {
+                Request request = new Request()
+                {
+                    DeleteDimension = new DeleteDimensionRequest()
+                    {
+                        Range = new DimensionRange()
+                        {
+                            SheetId = sheetId,
+                            Dimension = "ROWS",
+                            StartIndex = 1,
+                            EndIndex = _lastRow
+                        }
+                    }
+                };
+
+                List<Request> requests = new List<Request>();
+                requests.Add(request);
+
+                BatchUpdateSpreadsheetRequest deleteRequest = new BatchUpdateSpreadsheetRequest();
+                deleteRequest.Requests = requests;
+
+                _sheetsService.Spreadsheets.BatchUpdate(deleteRequest, _spreadsheetId).Execute();
+            }
+        }
+
+        public void ReadFileExcel()
+        {
+            try
+            {
+
+                var requests = new BatchUpdateSpreadsheetRequest { Requests = new List<Request>() };
+
+                var sheetId = GetSheetId(_sheetsService, _spreadsheetId, _googleSheetParameters.SheetName);
+                DeleteRowGoogleSheet(sheetId);
+
+                GridCoordinate gc = new GridCoordinate
+                {
+                    ColumnIndex = _googleSheetParameters.RangeColumnStart,
+                    RowIndex = _googleSheetParameters.RangeRowStart,
+                    SheetId = sheetId
+                };
+
+                var request = new Request { UpdateCells = new UpdateCellsRequest { Start = gc, Fields = "*" } };
+
+                var listRowData = new List<RowData>();
                 IWorkbook workbook = new XSSFWorkbook();
-                FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                if (fileName.IndexOf(".xlsx") > 0)
+                FileStream fs = new FileStream(_fileName, FileMode.Open, FileAccess.Read);
+                if (_fileName.IndexOf(".xlsx") > 0)
                     workbook = new XSSFWorkbook(fs);
-                else if (fileName.IndexOf(".xls") > 0)
+                else if (_fileName.IndexOf(".xls") > 0)
                     workbook = new HSSFWorkbook(fs);
                 //First sheet
                 ISheet sheet = workbook.GetSheetAt(0);
@@ -35,34 +154,57 @@ namespace AppAutoClick.Helper
                     var headers = new List<string>();
                     for (int i = 0; i <= rowCount; i++)
                     {
+                        var rowData = new RowData();
+                        var listCellData = new List<CellData>();
                         IRow curRow = sheet.GetRow(i);
                         // Works for consecutive data. Use continue otherwise 
                         if (curRow == null)
                         {
-                            break;
+                            continue;
                         }
                         int cellCount = curRow.LastCellNum;
-                        var expando = new ExpandoObject();
-                        var expandoDict = expando as IDictionary<String, object>;
+                        if (i == 0 && !_googleSheetParameters.FirstRowIsHeaders)
+                            continue;
                         for (int j = 0; j < cellCount; j++)
                         {
+                            var cellData = new CellData();
+                            var extendedValue = new ExtendedValue { StringValue = curRow.GetCell(j).StringCellValue.Trim() };
+                            cellData.UserEnteredValue = extendedValue;
+                            var cellFormat = new CellFormat { TextFormat = new TextFormat() };
+
                             if (i == 0)
-                                headers.Add(curRow.GetCell(j).StringCellValue.Trim());
-                            else
                             {
-                                expandoDict.Add(headers[j], curRow.GetCell(j).StringCellValue.Trim());
+                                cellFormat.TextFormat.Bold = true;
                             }
+
+                            //cellFormat.BackgroundColor = new Color { Blue = System.Drawing.Color.Blue / 255, Red = (float)cell.BackgroundColor.R / 255, Green = (float)cell.BackgroundColor.G / 255 };
+
+                            cellData.UserEnteredFormat = cellFormat;
+                            listCellData.Add(cellData);
                         }
-                        if(expando.Any())
-                            Datas.Add(expando);
+                        rowData.Values = listCellData;
+                        listRowData.Add(rowData);
                     }
+                    request.UpdateCells.Rows = listRowData;
+                    requests.Requests.Add(request);
+
+                    _sheetsService.Spreadsheets.BatchUpdate(requests, _spreadsheetId).Execute();
                 }
-                return Datas;
             }
             catch (Exception e)
             {
-                return Datas;
             }
         }
+    }
+
+
+    public class GoogleSheetParameters
+    {
+        public int RangeColumnStart { get; set; }
+        public int RangeRowStart { get; set; }
+        public int RangeColumnEnd { get; set; }
+        public int RangeRowEnd { get; set; }
+        public string SheetName { get; set; }
+        public bool FirstRowIsHeaders { get; set; }
     }
 }
