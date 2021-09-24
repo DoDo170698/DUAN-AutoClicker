@@ -168,10 +168,42 @@ namespace AppAutoClick.Helper
                         for (int j = 0; j < cellCount; j++)
                         {
                             var cellData = new CellData();
-                            var extendedValue = new ExtendedValue { StringValue = curRow.GetCell(j).StringCellValue.Trim() };
+                            var extendedValue = new ExtendedValue();
+                            var cell = curRow.GetCell(j);
+                            if (cell != null)
+                            {
+                                switch (cell.CellType)
+                                {
+                                    case CellType.Blank: extendedValue.StringValue = string.Empty; break;
+                                    case CellType.Boolean: extendedValue.BoolValue = cell.BooleanCellValue; break;
+                                    case CellType.String: extendedValue.StringValue = cell.StringCellValue; break;
+                                    case CellType.Numeric:
+                                        if (HSSFDateUtil.IsCellDateFormatted(cell)) { extendedValue.StringValue = cell.DateCellValue.ToString("mm/dd/yyyy"); }
+                                        else { extendedValue.NumberValue = cell.NumericCellValue; }
+                                        break;
+                                    case CellType.Formula:
+                                        switch (cell.CachedFormulaResultType)
+                                        {
+                                            case CellType.Blank: extendedValue.StringValue = string.Empty; break;
+                                            case CellType.String: extendedValue.StringValue = cell.StringCellValue; break;
+                                            case CellType.Boolean: extendedValue.BoolValue = cell.BooleanCellValue; break;
+                                            case CellType.Numeric:
+                                                if (HSSFDateUtil.IsCellDateFormatted(cell)) { extendedValue.StringValue = cell.DateCellValue.ToString("mm/dd/yyyy"); }
+                                                else { extendedValue.NumberValue = cell.NumericCellValue; }
+                                                break;
+                                        }
+                                        break;
+                                    default: extendedValue.StringValue = cell.StringCellValue; break;
+                                }
+                            }
                             cellData.UserEnteredValue = extendedValue;
                             var cellFormat = new CellFormat { TextFormat = new TextFormat() };
-
+                            var border = new Border();
+                            border.Color = new Color { Red = 0, Green = 0, Blue = 0 };
+                            border.Width = 1;
+                            border.Style = "SOLID";
+                            cellFormat.Borders = new Borders { Top = border, Right = border, Bottom = border, Left = border };
+                            
                             if (i == 0)
                             {
                                 cellFormat.TextFormat.Bold = true;
