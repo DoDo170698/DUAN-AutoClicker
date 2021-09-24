@@ -16,7 +16,6 @@ namespace AppAutoClick.Helper
     {
         static string[] Scopes = { SheetsService.Scope.Spreadsheets };
         static string ApplicationName = "GoogleSheetsHelper";
-
         private readonly SheetsService _sheetsService;
         private readonly string _spreadsheetId;
         private readonly string _sheetName;
@@ -241,16 +240,6 @@ namespace AppAutoClick.Helper
         public string CellValue { get; set; }
         public bool IsBold { get; set; }
         public System.Drawing.Color BackgroundColor { get; set; } = System.Drawing.Color.White;
-    }
-
-    public class GoogleSheetParameters
-    {
-        public int RangeColumnStart { get; set; }
-        public int RangeRowStart { get; set; }
-        public int RangeColumnEnd { get; set; }
-        public int RangeRowEnd { get; set; }
-        public string SheetName { get; set; }
-        public bool FirstRowIsHeaders { get; set; }
     }
 
     public class GoogleSheetRow
