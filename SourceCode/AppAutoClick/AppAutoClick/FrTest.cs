@@ -23,6 +23,7 @@ namespace AppAutoClick
         private bool run = false;
         private long count = 0;
         private string pathFileExe = ConfigurationManager.AppSettings["PathFileExe"];
+        private string pathFileExcel = ConfigurationManager.AppSettings["PathFileExcel"];
         private string pathCredential = ConfigurationManager.AppSettings["PathCredential"];
         private string spreadsheetId = ConfigurationManager.AppSettings["SpreadsheetId"];
         private string sheetName = ConfigurationManager.AppSettings["SheetName"];
@@ -101,76 +102,68 @@ namespace AppAutoClick
         {
             while (this.run)
             {
-                IntPtr hwnd = FindWindow(null, "UltraViewer 6.4 - Free");
+                var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
+                dataExcel.ReadFileExcel();
 
-                var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r14_ad1").ToList();
+                //if (dataExcel.Count > 0)
+                //{
+                //    var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
+                //    googleSheetsHelper.WirteDatas();
+                //}
 
-                IntPtr text = FindWindowEx(panes[14], IntPtr.Zero, "WindowsForms10.EDIT.app.0.34f5582_r14_ad1", null);
+                //IntPtr hwnd = FindWindow(null, "UltraViewer 6.4 - Free");
 
-                SendMessage(text, WM_SETTEXT, 0, "0011");
-//                if (IsNotOpenSoftware(nameWindowMain))
-//                {
-//                    System.Diagnostics.Process.Start(pathFileExe);
-//                    //this.run = false;
-//                    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
-//                    //{
-//                    //    System.Diagnostics.Process.Start(pathFileExe);
-//                    //}
-//                }
-//                else
-//                {
-//                    #region app biomini
-//#if true
+                //var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r14_ad1").ToList();
 
-//                    IntPtr hwnd = FindWindow(null, nameWindowMain);
+                //IntPtr text = FindWindowEx(panes[14], IntPtr.Zero, "WindowsForms10.EDIT.app.0.34f5582_r14_ad1", null);
 
-//                    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
+                //SendMessage(text, WM_SETTEXT, 0, "0011");
+                //if (IsNotOpenSoftware(nameWindowMain))
+                //{
+                //    System.Diagnostics.Process.Start(pathFileExe);
+                //    //this.run = false;
+                //    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                //    //{
+                //    //    System.Diagnostics.Process.Start(pathFileExe);
+                //    //}
+                //}
+                //else
+                //{
 
-//                    if (panes.Count > 2)
-//                    {
-//                        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+                //    IntPtr hwnd = FindWindow(null, nameWindowMain);
 
-//                        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+                //    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
 
-//                        Thread.Sleep(2000);
+                //    if (panes.Count > 2)
+                //    {
+                //        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
 
-//                        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+                //        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
 
-//                        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+                //        Thread.Sleep(2000);
 
-//                        Thread.Sleep(2000);
+                //        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
 
-//                        var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
+                //        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
 
-//                        if (dataExcel.Count > 0)
-//                        {
-//                            var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-//                            googleSheetsHelper.WirteDatas();
-//                        }
-//                    }
+                //        Thread.Sleep(2000);
 
-//                    //var hwndObject = new HwndObject(hwndChild);
-//                    //hwndObject.Click();
-//#endif
-//                    #endregion
+                //        var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
 
-//                    #region calculator
-//#if false
-//                    IntPtr hwnd = FindWindow(null, nameWindowMain);
+                //        if (dataExcel.Count > 0)
+                //        {
+                //            var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
+                //            googleSheetsHelper.WirteDatas();
+                //        }
+                //    }
 
-//                    var childs = GetChildWindows(hwnd).ToList();
+                //    //var hwndObject = new HwndObject(hwndChild);
+                //    //hwndObject.Click();
 
-//                    IntPtr hwndChild = FindWindowEx(childs[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
-
-//                    //send BN_CLICKED message
-//                    Win32.SendMessage(hwndChild, Win32.BN_CLICKED, 0, IntPtr.Zero);
-//#endif
-//                    #endregion
-
-//                }
+                //}
 
 
-                //this.run = false;
+                this.run = false;
                 this.count++;
                 MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                     SetCountLabel(this.count);
