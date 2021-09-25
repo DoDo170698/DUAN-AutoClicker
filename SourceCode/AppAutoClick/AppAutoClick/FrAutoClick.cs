@@ -31,6 +31,8 @@ namespace AppAutoClick
         //private string nameWindowMain = "Calculator";
         private string nameWindowLogin = " Login to Pathogen Asset Control System";
 
+        private TimeSpan timeSleep;
+
         public FrAutoClick()
         {
             InitializeComponent();
@@ -54,14 +56,11 @@ namespace AppAutoClick
             var messageError = ValidData();
             if (string.IsNullOrEmpty(messageError))
             {
-                //if (IsNotOpenSoftware(nameWindowMain))
-                //{
-                //    System.Diagnostics.Process.Start(pathFileExe);
-                //}
+                DisableControls();
+                this.run = true;
+                timeSleep = new TimeSpan(int.Parse(txtHour.Text), int.Parse(txtMinute.Text), 0);
                 if (!this.run)
                     AutoClickOnNewThread();
-                this.run = true;
-                DisableControls();
             }
             else
             {
@@ -73,10 +72,14 @@ namespace AppAutoClick
         private void DisableControls()
         {
             btnStart.Enabled = false;
+            txtHour.Enabled = false;
+            txtMinute.Enabled = false;
         }
         private void EnableControls()
         {
             btnStart.Enabled = true;
+            txtHour.Enabled = true;
+            txtMinute.Enabled = true;
         }
 
         private bool IsNotOpenSoftware(string classWindow, string nameWindow)
@@ -86,12 +89,27 @@ namespace AppAutoClick
         }
         private string ValidData()
         {
-            string messageError = string.Empty;
             if (!File.Exists(pathFileExe))
             {
-                messageError = "Can't start, software path is incorrect";
+                return "Can't start, software path is incorrect";
             }
-            return messageError;
+            var hourStr = txtHour.Text;
+            var minuteStr = txtMinute.Text;
+            if (string.IsNullOrEmpty(hourStr) || string.IsNullOrEmpty(minuteStr))
+            {
+                return "Hours and minutes cannot be left blank";
+            }
+            var hour = long.Parse(hourStr);
+            var minute = long.Parse(minuteStr);
+            if (hour == 0 && minute == 0)
+            {
+                return "Hours and minutes must have a value";
+            }
+            if (hour > 100 || minute > 59)
+            {
+                return "Hours must be less than 100 and minutes must be less than 60";
+            }
+            return string.Empty;
         }
         private void AutoClickOnNewThread()
         {
@@ -103,83 +121,105 @@ namespace AppAutoClick
         {
             while (this.run)
             {
-                if (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                try
                 {
-                    System.Diagnostics.Process.Start(pathFileExe);
-                    while(IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+
+                    if (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
                     {
-                        Thread.Sleep(2000);
+                        System.Diagnostics.Process.Start(pathFileExe);
+                        while (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                        {
+                            Thread.Sleep(2000);
+                        }
                     }
+                    else
+                    {
+                        IntPtr windowLogin = FindWindow(null, nameWindowLogin);
+
+                        //var paneLogins = EnumAllWindows(windowLogin, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1").ToList();
+
+                        //IntPtr paneLogin = FindWindowEx(paneLogins[4], IntPtr.Zero, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", "PACS");
+
+                        //var paneLoginInputs = EnumAllWindows(paneLogin, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
+
+                        //var inputUsername = FindWindowEx(paneLoginInputs[1], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
+                        //var inputPassword = FindWindowEx(paneLoginInputs[0], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
+
+                        var inputLogins = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList();
+                        var inputUsername = inputLogins[2];
+                        var inputPassword = inputLogins[0];
+
+                        SendMessage(inputUsername, WM_SETTEXT, 0, softwareUsername);
+                        Thread.Sleep(2000);
+                        SendMessage(inputPassword, WM_SETTEXT, 0, softwarePassword);
+                        Thread.Sleep(2000);
+
+
+                        IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
+                        IntPtr btnCancel = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Cancel");
+
+
+                        SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                        SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
+                        //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
+
+                        //if(panes.Count > 2)
+                        //{
+                        //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+
+                        //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+
+                        //    Thread.Sleep(2000);
+
+                        //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+
+                        //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+
+                        //    Thread.Sleep(2000);
+
+                        //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
+
+                        //    if(dataExcel.Count > 0)
+                        //    {
+                        //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
+                        //        googleSheetsHelper.WirteDatas();
+                        //    }
+                        //}
+
+                    }
+
+                    #region test
+                    if (this.count == 0)
+                        this.run = false;
+                    #endregion
+
+                    this.count++;
+                    MethodInvoker countLabelUpdater = new MethodInvoker(() => {
+                        SetCountLabel(this.count);
+                    });
+                    this.Invoke(countLabelUpdater);
+                    Thread.Sleep(timeSleep);
                 }
-                else
+                catch (Exception ex)
                 {
-                    IntPtr windowLogin = FindWindow(null, nameWindowLogin);
-
-                    //var paneLogins = EnumAllWindows(windowLogin, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1").ToList();
-
-                    //IntPtr paneLogin = FindWindowEx(paneLogins[4], IntPtr.Zero, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", "PACS");
-
-                    //var paneLoginInputs = EnumAllWindows(paneLogin, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
-
-                    //var inputUsername = FindWindowEx(paneLoginInputs[1], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
-                    //var inputPassword = FindWindowEx(paneLoginInputs[0], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
-
-                    var inputLogins = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList();
-                    var inputUsername = inputLogins[2];
-                    var inputPassword = inputLogins[0];
-
-                    SendMessage(inputUsername, WM_SETTEXT, 0, softwareUsername);
-                    Thread.Sleep(2000);
-                    SendMessage(inputPassword, WM_SETTEXT, 0, softwarePassword);
-                    Thread.Sleep(2000);
-
-
-                    IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
-                    IntPtr btnCancel = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Cancel");
-
-
-                    SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
-                    SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
-                    //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
-
-                    //if(panes.Count > 2)
-                    //{
-                    //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
-
-                    //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
-
-                    //    Thread.Sleep(2000);
-
-                    //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
-
-                    //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
-
-                    //    Thread.Sleep(2000);
-
-                    //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
-
-                    //    if(dataExcel.Count > 0)
-                    //    {
-                    //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-                    //        googleSheetsHelper.WirteDatas();
-                    //    }
-                    //}
-
-                }
-
-                if(this.count==1)
                     this.run = false;
-                this.count++;
-                MethodInvoker countLabelUpdater = new MethodInvoker(() => {
-                    SetCountLabel(this.count);
-                });
-                this.Invoke(countLabelUpdater);
-                Thread.Sleep(1000);
+                    EnableControls();
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
+
         private void SetCountLabel(long count)
         {
             this.lbCount.Text = count + " Total Actions";
+        }
+
+        private void number_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
     }
 }

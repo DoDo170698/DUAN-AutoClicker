@@ -16,8 +16,8 @@ namespace AppAutoClick
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new FrAutoClick());
-            Application.Run(new FrTest());
+            Application.Run(new FrAutoClick());
+            //Application.Run(new FrTest());
         }
     }
 }
