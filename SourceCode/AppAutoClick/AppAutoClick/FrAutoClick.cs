@@ -136,15 +136,6 @@ namespace AppAutoClick
                     {
                         IntPtr windowLogin = FindWindow(null, nameWindowLogin);
 
-                        //var paneLogins = EnumAllWindows(windowLogin, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1").ToList();
-
-                        //IntPtr paneLogin = FindWindowEx(paneLogins[4], IntPtr.Zero, "WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", "PACS");
-
-                        //var paneLoginInputs = EnumAllWindows(paneLogin, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
-
-                        //var inputUsername = FindWindowEx(paneLoginInputs[1], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
-                        //var inputPassword = FindWindowEx(paneLoginInputs[0], IntPtr.Zero, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1", null);
-
                         var inputLogins = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList();
                         var inputUsername = inputLogins[2];
                         var inputPassword = inputLogins[0];

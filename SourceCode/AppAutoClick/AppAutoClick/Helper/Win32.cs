@@ -58,12 +58,21 @@ namespace AppAutoClick.Helper
 
         public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
 
-        [DllImport("user32.Dll")]
+        [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static public extern IntPtr GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+
+        [DllImport("user32.dll")]
+        public static extern long SetCursorPos(int x, int y);
+
+        [DllImport("user32.dll")]
+        public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
 
         private static bool EnumWindow(IntPtr handle, IntPtr pointer)
         {
@@ -116,15 +125,13 @@ namespace AppAutoClick.Helper
                     yield return childchild;
             }
         }
+        public static void LeftMouseClick(int xpos, int ypos)
+        {
+            SetCursorPos(xpos, ypos);
+            mouse_event(MOUSEEVENTF_LEFTDOWN, xpos, ypos, 0, 0);
+            mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
+        }
 
-        [DllImport("User32.Dll")]
-        public static extern long SetCursorPos(int x, int y);
-
-        [DllImport("User32.Dll")]
-        public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
         public struct Rect
         {
             public int Left { get; set; }

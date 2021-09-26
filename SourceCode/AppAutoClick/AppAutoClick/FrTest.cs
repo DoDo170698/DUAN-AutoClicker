@@ -102,8 +102,8 @@ namespace AppAutoClick
         {
             while (this.run)
             {
-                var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
-                dataExcel.ReadFileExcel();
+                //var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
+                //dataExcel.ReadFileExcel();
 
                 //if (dataExcel.Count > 0)
                 //{
@@ -118,49 +118,53 @@ namespace AppAutoClick
                 //IntPtr text = FindWindowEx(panes[14], IntPtr.Zero, "WindowsForms10.EDIT.app.0.34f5582_r14_ad1", null);
 
                 //SendMessage(text, WM_SETTEXT, 0, "0011");
-                //if (IsNotOpenSoftware(nameWindowMain))
-                //{
-                //    System.Diagnostics.Process.Start(pathFileExe);
-                //    //this.run = false;
-                //    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                //    //{
-                //    //    System.Diagnostics.Process.Start(pathFileExe);
-                //    //}
-                //}
-                //else
-                //{
 
-                //    IntPtr hwnd = FindWindow(null, nameWindowMain);
+                if (IsNotOpenSoftware(nameWindowMain))
+                {
+                    System.Diagnostics.Process.Start(pathFileExe);
+                    //this.run = false;
+                    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    //{
+                    //    System.Diagnostics.Process.Start(pathFileExe);
+                    //}
+                }
+                else
+                {
 
-                //    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
+                    IntPtr hwnd = FindWindow(null, nameWindowMain);
 
-                //    if (panes.Count > 2)
-                //    {
-                //        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+                    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
 
-                //        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+                    if (panes.Count > 2)
+                    {
+                        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
 
-                //        Thread.Sleep(2000);
+                        //var rectHwnd = new Rect();
+                        //GetWindowRect(hwnd, ref rectHwnd);
 
-                //        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+                        //var rectBtnInstall = new Rect();
+                        //GetWindowRect(btnInstall, ref rectBtnInstall);
+                        //SetCursorPos(rectBtnInstall.Left, rectBtnInstall.Top);
+                        //mouse_event(MOUSEEVENTF_LEFTDOWN, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
+                        //mouse_event(MOUSEEVENTF_LEFTUP, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
 
-                //        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+                        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
 
-                //        Thread.Sleep(2000);
+                        Thread.Sleep(2000);
 
-                //        var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
+                        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
 
-                //        if (dataExcel.Count > 0)
-                //        {
-                //            var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-                //            googleSheetsHelper.WirteDatas();
-                //        }
-                //    }
+                        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
 
-                //    //var hwndObject = new HwndObject(hwndChild);
-                //    //hwndObject.Click();
+                        Thread.Sleep(2000);
 
-                //}
+
+                    }
+
+                    //var hwndObject = new HwndObject(hwndChild);
+                    //hwndObject.Click();
+
+                }
 
 
                 this.run = false;
