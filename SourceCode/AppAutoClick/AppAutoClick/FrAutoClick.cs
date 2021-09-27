@@ -30,6 +30,8 @@ namespace AppAutoClick
         private string sheetName = ConfigurationManager.AppSettings["SheetName"];
         //private string nameWindowMain = "Calculator";
         private string nameWindowLogin = " Login to Pathogen Asset Control System";
+        private string nameWindowReLogin = "PACS - inactivity lock";
+        private string nameWindowRepositoryManagement = "Pathogen Asset Control System - [Repository Management]";
 
         private TimeSpan timeSleep;
 
@@ -56,11 +58,11 @@ namespace AppAutoClick
             var messageError = ValidData();
             if (string.IsNullOrEmpty(messageError))
             {
-                DisableControls();
-                this.run = true;
                 timeSleep = new TimeSpan(int.Parse(txtHour.Text), int.Parse(txtMinute.Text), 0);
                 if (!this.run)
                     AutoClickOnNewThread();
+                this.run = true;
+                DisableControls();
             }
             else
             {
@@ -82,10 +84,10 @@ namespace AppAutoClick
             txtMinute.Enabled = true;
         }
 
-        private bool IsNotOpenSoftware(string classWindow, string nameWindow)
+        private bool IsOpenSoftware(string classWindow, string nameWindow)
         {
             IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
-            return hwnd == IntPtr.Zero;
+            return hwnd != IntPtr.Zero;
         }
         private string ValidData()
         {
@@ -123,16 +125,19 @@ namespace AppAutoClick
             {
                 try
                 {
-
-                    if (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                    if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
+                        !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
+                        !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) )
                     {
                         System.Diagnostics.Process.Start(pathFileExe);
-                        while (IsNotOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                        while (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
                         {
                             Thread.Sleep(2000);
                         }
                     }
-                    else
+
+                    // login
+                    if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
                     {
                         IntPtr windowLogin = FindWindow(null, nameWindowLogin);
 
@@ -147,37 +152,63 @@ namespace AppAutoClick
 
 
                         IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
-                        IntPtr btnCancel = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Cancel");
-
 
                         SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
                         SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
-                        //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
-
-                        //if(panes.Count > 2)
-                        //{
-                        //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
-
-                        //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
-
-                        //    Thread.Sleep(2000);
-
-                        //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
-
-                        //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
-
-                        //    Thread.Sleep(2000);
-
-                        //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
-
-                        //    if(dataExcel.Count > 0)
-                        //    {
-                        //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-                        //        googleSheetsHelper.WirteDatas();
-                        //    }
-                        //}
 
                     }
+                    else if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin))
+                    {
+                        IntPtr windowLogin = FindWindow(null, nameWindowReLogin);
+                        var inputLogins = EnumAllWindows(windowLogin, "WindowsForms10.EDIT.app.0.2bf8098_r6_ad1").ToList();
+
+                        var inputPassword = inputLogins[0];
+                        SendMessage(inputPassword, WM_SETTEXT, 0, softwarePassword);
+                        Thread.Sleep(2000);
+
+
+                        IntPtr btnOk = FindWindowEx(windowLogin, IntPtr.Zero, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1", "Ok");
+
+                        SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                        SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
+                    }
+
+                    if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
+                    {
+                        IntPtr windowRepositoryManagement = FindWindow(null, nameWindowRepositoryManagement);
+
+                        var pointRepositoryManagement = new POINT();
+                        ClientToScreen(windowRepositoryManagement, ref pointRepositoryManagement);
+
+                        LeftMouseClick(165, 47);
+                    }
+
+
+
+                    //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
+
+                    //if(panes.Count > 2)
+                    //{
+                    //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+
+                    //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+
+                    //    Thread.Sleep(2000);
+
+                    //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+
+                    //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+
+                    //    Thread.Sleep(2000);
+
+                    //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
+
+                    //    if(dataExcel.Count > 0)
+                    //    {
+                    //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
+                    //        googleSheetsHelper.WirteDatas();
+                    //    }
+                    //}
 
                     #region test
                     if (this.count == 0)

@@ -65,7 +65,7 @@ namespace AppAutoClick.Helper
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static public extern IntPtr GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
 
-        [DllImport("user32.dll")]
+        [DllImport("User32.Dll")]
         public static extern long SetCursorPos(int x, int y);
 
         [DllImport("user32.dll")]
