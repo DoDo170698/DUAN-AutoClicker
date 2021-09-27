@@ -28,12 +28,18 @@ namespace AppAutoClick.Helper
         /// <returns></returns>
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern int SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SendMessage(IntPtr hWnd, int msg, int wParam, uint lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, string lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, [Out] StringBuilder lParam);
+
 
         /// <summary>
         /// The FindWindowEx API
@@ -73,6 +79,22 @@ namespace AppAutoClick.Helper
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
+        public static string GetControlText(IntPtr hWnd)
+        {
+
+            // Get the size of the string required to hold the window title (including trailing null.) 
+            Int32 titleSize = SendMessage(hWnd, WM_GETTEXTLENGTH, 0, IntPtr.Zero);
+
+            // If titleSize is 0, there is no title so return an empty string (or null)
+            if (titleSize == 0)
+                return String.Empty;
+
+            StringBuilder title = new StringBuilder(titleSize + 1);
+
+            SendMessage(hWnd, (int)WM_GETTEXT, title.Capacity, title);
+
+            return title.ToString();
+        }
 
         private static bool EnumWindow(IntPtr handle, IntPtr pointer)
         {

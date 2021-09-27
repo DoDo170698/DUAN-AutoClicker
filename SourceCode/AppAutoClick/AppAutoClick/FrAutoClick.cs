@@ -24,14 +24,18 @@ namespace AppAutoClick
         private long count = 0;
         private string softwareUsername = ConfigurationManager.AppSettings["SoftwareUsername"];
         private string softwarePassword = ConfigurationManager.AppSettings["SoftwarePassword"];
-        private string pathFileExe = ConfigurationManager.AppSettings["PathFileExe"];
         private string pathCredential = ConfigurationManager.AppSettings["PathCredential"];
         private string spreadsheetId = ConfigurationManager.AppSettings["SpreadsheetId"];
         private string sheetName = ConfigurationManager.AppSettings["SheetName"];
+        private string pathFileExe = ConfigurationManager.AppSettings["PathFileExe"];
+        private string pathFileExcel = ConfigurationManager.AppSettings["PathFileExcel"];
+        private string fileNameExcel = ConfigurationManager.AppSettings["FileNameExcel"];
         //private string nameWindowMain = "Calculator";
         private string nameWindowLogin = " Login to Pathogen Asset Control System";
         private string nameWindowReLogin = "PACS - inactivity lock";
         private string nameWindowRepositoryManagement = "Pathogen Asset Control System - [Repository Management]";
+        private string nameWindowSearchEngine = "Pathogen Asset Control System - [Search Engine]";
+        private string nameWindowSaveAs = "Save As";
 
         private TimeSpan timeSleep;
 
@@ -127,10 +131,11 @@ namespace AppAutoClick
                 {
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
-                        !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) )
+                        !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) && 
+                        !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowSearchEngine))
                     {
                         System.Diagnostics.Process.Start(pathFileExe);
-                        while (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
+                        while (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin))
                         {
                             Thread.Sleep(2000);
                         }
@@ -155,6 +160,7 @@ namespace AppAutoClick
 
                         SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
                         SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
+                        Thread.Sleep(5000);
 
                     }
                     else if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin))
@@ -171,6 +177,7 @@ namespace AppAutoClick
 
                         SendMessage(btnOk, WM_LBUTTONDOWN, 0, IntPtr.Zero);
                         SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
+                        Thread.Sleep(5000);
                     }
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
@@ -179,40 +186,50 @@ namespace AppAutoClick
 
                         var pointRepositoryManagement = new POINT();
                         ClientToScreen(windowRepositoryManagement, ref pointRepositoryManagement);
+                        LeftMouseClick(pointRepositoryManagement.x + 165, pointRepositoryManagement.y + 55);
+                        Thread.Sleep(2000);
 
-                        LeftMouseClick(165, 47);
+                        LeftMouseClick(pointRepositoryManagement.x + 20, pointRepositoryManagement.y + 100);
+                        Thread.Sleep(2000);
+                    }
+
+                    if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowSearchEngine))
+                    {
+                        IntPtr windowSearchEngine = FindWindow(null, nameWindowSearchEngine);
+
+                        var pointSearchEngine = new POINT();
+                        ClientToScreen(windowSearchEngine, ref pointSearchEngine);
+
+                        LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 390);
+                        Thread.Sleep(2000);
+
+                        var btnSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
+
+                        var btnExecute = btnSearchEngines[5];
+                        SendMessage(btnExecute, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                        SendMessage(btnExecute, WM_LBUTTONUP, 0, IntPtr.Zero);
+                        Thread.Sleep(5000);
+
+                        var staticSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.STATIC.app.0.2bf8098_r6_ad1").ToList();
+
+                        var staticDisplayRecord = staticSearchEngines[0];
+                        StringBuilder record = new StringBuilder(65535);
+                        while (!GetControlText(staticDisplayRecord).Contains("record"))
+                        {
+                            Thread.Sleep(2000);
+                        }
+
+                        SaveAsOnNewThread();
+
+                        var btnExport = btnSearchEngines[11];
+                        SendMessage(btnExport, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                        SendMessage(btnExport, WM_LBUTTONUP, 0, IntPtr.Zero);
+
                     }
 
 
-
-                    //SendMessage(btnCancel, MOUSEEVENTF_LEFTUP, 0, IntPtr.Zero);
-
-                    //if(panes.Count > 2)
-                    //{
-                    //    IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
-
-                    //    SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
-
-                    //    Thread.Sleep(2000);
-
-                    //    IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
-
-                    //    SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
-
-                    //    Thread.Sleep(2000);
-
-                    //    var dataExcel = ExcelHelper.ReadFileExcel(@"D:\DuAn\DUAN-AutoClicker\Test\Excels\File1.xlsx");
-
-                    //    if(dataExcel.Count > 0)
-                    //    {
-                    //        var googleSheetsHelper = new GoogleSheetsHelper(pathCredential, spreadsheetId, sheetName, dataExcel);
-                    //        googleSheetsHelper.WirteDatas();
-                    //    }
-                    //}
-
                     #region test
-                    if (this.count == 0)
-                        this.run = false;
+                    this.run = false;
                     #endregion
 
                     this.count++;
@@ -228,6 +245,57 @@ namespace AppAutoClick
                     EnableControls();
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+        private void SaveAsOnNewThread()
+        {
+            Thread t = new Thread(SaveAs);
+            t.IsBackground = true;
+            t.Start();
+        }
+
+        private void SaveAs()
+        {
+            try
+            {
+                while (!IsOpenSoftware(null, nameWindowSaveAs))
+                {
+                    Thread.Sleep(2000);
+                }
+
+                fileNameExcel += "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
+
+                IntPtr windowSaveAs = FindWindow(null, nameWindowSaveAs);
+                pathFileExcel += @"\" + fileNameExcel;
+
+                var editSaveAses = EnumAllWindows(windowSaveAs, "Edit").ToList();
+                var editFileName = editSaveAses[0];
+                SendMessage(editFileName, WM_KEYDOWN, 0x5A, 0x002C0001);
+                SendMessage(editFileName, WM_CHAR, 0x7A, 0x002C0001);
+                SendMessage(editFileName, WM_KEYUP, 0x5A, 0xC02C0001);
+                SendMessage(editFileName, WM_SETTEXT, 0, pathFileExcel);
+                Thread.Sleep(2000);
+
+                //var toolbarWindow32s = EnumAllWindows(windowSaveAs, "ToolbarWindow32").ToList();
+                //var toolbarAddress = toolbarWindow32s[5];
+                //var address = GetControlText(toolbarAddress);
+                //address = address.Replace("Address: ", "").Trim();
+
+                IntPtr btnSave = FindWindowEx(windowSaveAs, IntPtr.Zero, "Button", "&Save");
+
+                SendMessage(btnSave, WM_LBUTTONDOWN, 0, IntPtr.Zero);
+                SendMessage(btnSave, WM_LBUTTONUP, 0, IntPtr.Zero);
+                Thread.Sleep(3000);
+
+                var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
+                dataExcel.ReadFileExcel();
+                Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                this.run = false;
+                EnableControls();
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

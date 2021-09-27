@@ -102,6 +102,8 @@ namespace AppAutoClick
         {
             while (this.run)
             {
+                SetCursorPos(165, 48);
+
                 //var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
                 //dataExcel.ReadFileExcel();
 
@@ -119,52 +121,52 @@ namespace AppAutoClick
 
                 //SendMessage(text, WM_SETTEXT, 0, "0011");
 
-                if (IsNotOpenSoftware(nameWindowMain))
-                {
-                    System.Diagnostics.Process.Start(pathFileExe);
-                    //this.run = false;
-                    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                    //{
-                    //    System.Diagnostics.Process.Start(pathFileExe);
-                    //}
-                }
-                else
-                {
+                //if (IsNotOpenSoftware(nameWindowMain))
+                //{
+                //    System.Diagnostics.Process.Start(pathFileExe);
+                //    //this.run = false;
+                //    //if (MessageBox.Show("Couldn't find the UniKey 4.2 RC4 application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                //    //{
+                //    //    System.Diagnostics.Process.Start(pathFileExe);
+                //    //}
+                //}
+                //else
+                //{
 
-                    IntPtr hwnd = FindWindow(null, nameWindowMain);
+                //    IntPtr hwnd = FindWindow(null, nameWindowMain);
 
-                    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
+                //    var panes = EnumAllWindows(hwnd, "WindowsForms10.Window.8.app.0.34f5582_r6_ad1").ToList();
 
-                    if (panes.Count > 2)
-                    {
-                        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
+                //    if (panes.Count > 2)
+                //    {
+                //        IntPtr btnInstall = FindWindowEx(panes[1], IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Install");
 
-                        //var rectHwnd = new Rect();
-                        //GetWindowRect(hwnd, ref rectHwnd);
+                //        //var rectHwnd = new Rect();
+                //        //GetWindowRect(hwnd, ref rectHwnd);
 
-                        //var rectBtnInstall = new Rect();
-                        //GetWindowRect(btnInstall, ref rectBtnInstall);
-                        //SetCursorPos(rectBtnInstall.Left, rectBtnInstall.Top);
-                        //mouse_event(MOUSEEVENTF_LEFTDOWN, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
-                        //mouse_event(MOUSEEVENTF_LEFTUP, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
+                //        //var rectBtnInstall = new Rect();
+                //        //GetWindowRect(btnInstall, ref rectBtnInstall);
+                //        //SetCursorPos(rectBtnInstall.Left, rectBtnInstall.Top);
+                //        //mouse_event(MOUSEEVENTF_LEFTDOWN, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
+                //        //mouse_event(MOUSEEVENTF_LEFTUP, rectBtnInstall.Left, rectBtnInstall.Top, 0, 0);
 
-                        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
+                //        SendMessage(btnInstall, BN_CLICKED, 0, IntPtr.Zero);
 
-                        Thread.Sleep(2000);
+                //        Thread.Sleep(2000);
 
-                        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
+                //        IntPtr btnSelectBSP = FindWindowEx(hwnd, IntPtr.Zero, "WindowsForms10.BUTTON.app.0.34f5582_r6_ad1", "Select BSP");
 
-                        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
+                //        SendMessage(btnSelectBSP, BN_CLICKED, 0, IntPtr.Zero);
 
-                        Thread.Sleep(2000);
+                //        Thread.Sleep(2000);
 
 
-                    }
+                //    }
 
-                    //var hwndObject = new HwndObject(hwndChild);
-                    //hwndObject.Click();
+                //    //var hwndObject = new HwndObject(hwndChild);
+                //    //hwndObject.Click();
 
-                }
+                //}
 
 
                 this.run = false;
