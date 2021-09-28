@@ -22,6 +22,7 @@ namespace AppAutoClick
     {
         private bool run = false;
         private long count = 0;
+        private string programName = ConfigurationManager.AppSettings["ProgramName"];
         private string softwareUsername = ConfigurationManager.AppSettings["SoftwareUsername"];
         private string softwarePassword = ConfigurationManager.AppSettings["SoftwarePassword"];
         private string pathCredential = ConfigurationManager.AppSettings["PathCredential"];
@@ -119,10 +120,19 @@ namespace AppAutoClick
         }
         private void AutoClickOnNewThread()
         {
+            CloseProgram();
             Thread t = new Thread(AutoClick);
             t.IsBackground = true;
             t.Start();
         }
+
+        private void CloseProgram()
+        {
+            string strCmdText;
+            strCmdText = $"taskkill/im {programName}";
+            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+        }
+
         private void AutoClick()
         {
             while (this.run)
@@ -263,17 +273,15 @@ namespace AppAutoClick
                     Thread.Sleep(2000);
                 }
 
-                fileNameExcel += "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
-
                 IntPtr windowSaveAs = FindWindow(null, nameWindowSaveAs);
-                pathFileExcel += @"\" + fileNameExcel;
+                var urlFileExcel = pathFileExcel + @"\" + fileNameExcel + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
 
                 var editSaveAses = EnumAllWindows(windowSaveAs, "Edit").ToList();
                 var editFileName = editSaveAses[0];
                 SendMessage(editFileName, WM_KEYDOWN, 0x5A, 0x002C0001);
                 SendMessage(editFileName, WM_CHAR, 0x7A, 0x002C0001);
                 SendMessage(editFileName, WM_KEYUP, 0x5A, 0xC02C0001);
-                SendMessage(editFileName, WM_SETTEXT, 0, pathFileExcel);
+                SendMessage(editFileName, WM_SETTEXT, 0, urlFileExcel);
                 Thread.Sleep(2000);
 
                 //var toolbarWindow32s = EnumAllWindows(windowSaveAs, "ToolbarWindow32").ToList();
@@ -287,7 +295,7 @@ namespace AppAutoClick
                 SendMessage(btnSave, WM_LBUTTONUP, 0, IntPtr.Zero);
                 Thread.Sleep(3000);
 
-                var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
+                var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, urlFileExcel);
                 dataExcel.ReadFileExcel();
                 Thread.Sleep(2000);
             }
