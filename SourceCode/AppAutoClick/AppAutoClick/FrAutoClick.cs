@@ -311,5 +311,11 @@ namespace AppAutoClick
                 e.Handled = true;
             }
         }
+        private void number_Click(object sender, EventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            textBox.SelectAll();
+            textBox.Focus();
+        }
     }
 }
