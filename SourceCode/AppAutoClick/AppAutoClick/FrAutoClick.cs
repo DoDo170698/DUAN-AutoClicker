@@ -121,7 +121,6 @@ namespace AppAutoClick
         }
         private void AutoClickOnNewThread()
         {
-            CloseProgram();
             Thread t = new Thread(AutoClick);
             t.IsBackground = true;
             t.Start();
@@ -151,6 +150,7 @@ namespace AppAutoClick
             {
                 try
                 {
+                    CloseProgram();
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) && 
@@ -250,15 +250,14 @@ namespace AppAutoClick
                     }
 
 
-                    #region test
-                    this.run = false;
-                    #endregion
-
                     this.count++;
                     MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                         SetCountLabel(this.count);
                     });
                     this.Invoke(countLabelUpdater);
+
+
+                    CloseProgram();
                     Thread.Sleep(timeSleep);
                 }
                 catch (Exception ex)
