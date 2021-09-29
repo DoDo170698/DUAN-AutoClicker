@@ -15,6 +15,7 @@ using static AppAutoClick.Helper.Win32;
 using WindowScrape;
 using WindowScrape.Types;
 using AppAutoClick.Helper;
+using System.Diagnostics;
 
 namespace AppAutoClick
 {
@@ -128,9 +129,20 @@ namespace AppAutoClick
 
         private void CloseProgram()
         {
-            string strCmdText;
-            strCmdText = $"taskkill/im {programName}";
-            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+            Process cmd = new Process();
+            cmd.StartInfo.FileName = "cmd.exe";
+            cmd.StartInfo.RedirectStandardInput = true;
+            cmd.StartInfo.RedirectStandardOutput = true;
+            cmd.StartInfo.CreateNoWindow = true;
+            cmd.StartInfo.UseShellExecute = false;
+            cmd.Start();
+
+            cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+            cmd.StandardInput.Flush();
+            cmd.StandardInput.Close();
+            cmd.WaitForExit();
+
+            Thread.Sleep(2000);
         }
 
         private void AutoClick()
