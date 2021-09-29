@@ -15,6 +15,7 @@ using static AppAutoClick.Helper.Win32;
 using WindowScrape;
 using WindowScrape.Types;
 using AppAutoClick.Helper;
+using System.Diagnostics;
 
 namespace AppAutoClick
 {
@@ -120,7 +121,6 @@ namespace AppAutoClick
         }
         private void AutoClickOnNewThread()
         {
-            CloseProgram();
             Thread t = new Thread(AutoClick);
             t.IsBackground = true;
             t.Start();
@@ -128,9 +128,20 @@ namespace AppAutoClick
 
         private void CloseProgram()
         {
-            string strCmdText;
-            strCmdText = $"taskkill/im {programName}";
-            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+            Process cmd = new Process();
+            cmd.StartInfo.FileName = "cmd.exe";
+            cmd.StartInfo.RedirectStandardInput = true;
+            cmd.StartInfo.RedirectStandardOutput = true;
+            cmd.StartInfo.CreateNoWindow = true;
+            cmd.StartInfo.UseShellExecute = false;
+            cmd.Start();
+
+            cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+            cmd.StandardInput.Flush();
+            cmd.StandardInput.Close();
+            cmd.WaitForExit();
+
+            Thread.Sleep(2000);
         }
 
         private void AutoClick()
@@ -139,6 +150,7 @@ namespace AppAutoClick
             {
                 try
                 {
+                    CloseProgram();
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) && 
@@ -238,15 +250,14 @@ namespace AppAutoClick
                     }
 
 
-                    #region test
-                    this.run = false;
-                    #endregion
-
                     this.count++;
                     MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                         SetCountLabel(this.count);
                     });
                     this.Invoke(countLabelUpdater);
+
+
+                    CloseProgram();
                     Thread.Sleep(timeSleep);
                 }
                 catch (Exception ex)
