@@ -157,12 +157,8 @@ namespace AppAutoClick.Helper
         }
         public static void LeftMouseClick(int xpos, int ypos)
         {
-            BlockInput(true);
-            Thread.Sleep(1000);
             SetCursorPos(xpos, ypos);
-            mouse_event(MOUSEEVENTF_LEFTDOWN, xpos, ypos, 0, 0);
-            mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
-            BlockInput(false);
+            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
         }
 
         public struct Rect
