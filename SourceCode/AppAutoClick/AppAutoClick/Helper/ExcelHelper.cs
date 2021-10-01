@@ -123,7 +123,6 @@ namespace AppAutoClick.Helper
         {
             try
             {
-
                 var requests = new BatchUpdateSpreadsheetRequest { Requests = new List<Request>() };
 
                 var sheetId = GetSheetId(_sheetsService, _spreadsheetId, _googleSheetParameters.SheetName);
@@ -223,8 +222,9 @@ namespace AppAutoClick.Helper
                     _sheetsService.Spreadsheets.BatchUpdate(requests, _spreadsheetId).Execute();
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                LoggingHelper.Write(ex.Message);
             }
         }
     }
