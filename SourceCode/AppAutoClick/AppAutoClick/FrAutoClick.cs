@@ -230,7 +230,7 @@ namespace AppAutoClick
                         var btnExecute = btnSearchEngines[5];
                         SendMessage(btnExecute, WM_LBUTTONDOWN, 0, IntPtr.Zero);
                         SendMessage(btnExecute, WM_LBUTTONUP, 0, IntPtr.Zero);
-                        Thread.Sleep(5000);
+                        Thread.Sleep(3000);
 
                         var staticSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.STATIC.app.0.2bf8098_r6_ad1").ToList();
 

@@ -102,7 +102,14 @@ namespace AppAutoClick
         {
             while (this.run)
             {
-                SetCursorPos(165, 48);
+                BlockInput(true);
+                SetCursorPos(25, 45);
+                mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 25, 45, 0, 0);
+                Thread.Sleep(3000);
+                BlockInput(false);
+                //Cursor.Position = new Point(25, 45);
+                //mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 25, 45, 0, 0);
+                //mouse_event(MOUSEEVENTF_LEFTUP, 25, 45, 0, 0);
 
                 //var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, pathFileExcel);
                 //dataExcel.ReadFileExcel();
