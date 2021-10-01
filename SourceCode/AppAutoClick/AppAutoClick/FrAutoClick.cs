@@ -265,6 +265,7 @@ namespace AppAutoClick
                     this.run = false;
                     EnableControls();
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoggingHelper.Write(ex.Message);
                 }
             }
         }
@@ -315,6 +316,7 @@ namespace AppAutoClick
                 this.run = false;
                 EnableControls();
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoggingHelper.Write(ex.Message);
             }
         }
 
