@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AppAutoClick.Helper
@@ -40,6 +41,10 @@ namespace AppAutoClick.Helper
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, [Out] StringBuilder lParam);
 
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern bool BlockInput(bool fBlockIt);
+
 
         /// <summary>
         /// The FindWindowEx API
@@ -76,6 +81,9 @@ namespace AppAutoClick.Helper
 
         [DllImport("user32.dll")]
         public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
+
+        [DllImport("user32.dll")]
+        public static extern void LockWorkStation();
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
@@ -149,9 +157,12 @@ namespace AppAutoClick.Helper
         }
         public static void LeftMouseClick(int xpos, int ypos)
         {
+            BlockInput(true);
+            Thread.Sleep(1000);
             SetCursorPos(xpos, ypos);
             mouse_event(MOUSEEVENTF_LEFTDOWN, xpos, ypos, 0, 0);
             mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
+            BlockInput(false);
         }
 
         public struct Rect
