@@ -85,6 +85,12 @@ namespace AppAutoClick.Helper
         [DllImport("user32.dll")]
         public static extern void LockWorkStation();
 
+        public const int SW_MAXIMIZE = 3;
+        public const int SW_MINIMIZE = 6;
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
         public static string GetControlText(IntPtr hWnd)

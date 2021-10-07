@@ -22,6 +22,7 @@ namespace AppAutoClick
     public partial class FrAutoClick : Form
     {
         private bool run = false;
+        private bool isSave = false;
         private long count = 0;
         private string programName = ConfigurationManager.AppSettings["ProgramName"];
         private string softwareUsername = ConfigurationManager.AppSettings["SoftwareUsername"];
@@ -40,6 +41,8 @@ namespace AppAutoClick
         private string nameWindowSaveAs = "Save As";
 
         private TimeSpan timeSleep;
+        Thread autoClick;
+        Thread autoSave;
 
         public FrAutoClick()
         {
@@ -53,10 +56,7 @@ namespace AppAutoClick
         }
         private void btnStop_Click(object sender, EventArgs e)
         {
-            this.run = false;
-            this.count = 0;
-            SetCountLabel(this.count);
-            EnableControls();
+            StopAutoClicker();
         }
 
         private void StartAutoClicker()
@@ -75,6 +75,18 @@ namespace AppAutoClick
                 MessageBox.Show(messageError, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void StopAutoClicker()
+        {
+            this.run = false;
+            this.isSave = false;
+            if (this.autoClick != null)
+                this.autoClick.Abort();
+            if (this.autoSave != null)
+                this.autoSave.Abort();
+            EnableControls();
+            CloseProgram();
+        }
         
         private void DisableControls()
         {
@@ -84,9 +96,23 @@ namespace AppAutoClick
         }
         private void EnableControls()
         {
+            this.count = 0;
+            SetCountLabel(this.count);
             btnStart.Enabled = true;
             txtHour.Enabled = true;
             txtMinute.Enabled = true;
+
+        }
+        private void EnableControlsThread()
+        {
+            MethodInvoker enableControls = new MethodInvoker(() => {
+                this.count = 0;
+                SetCountLabel(this.count);
+                btnStart.Enabled = true;
+                txtHour.Enabled = true;
+                txtMinute.Enabled = true;
+            });
+            this.Invoke(enableControls);
         }
         private string ValidData()
         {
@@ -132,9 +158,9 @@ namespace AppAutoClick
         }
         private void AutoClickOnNewThread()
         {
-            Thread t = new Thread(AutoClick);
-            t.IsBackground = true;
-            t.Start();
+            autoClick = new Thread(AutoClick);
+            autoClick.IsBackground = true;
+            autoClick.Start();
         }
 
         private void CloseProgram()
@@ -158,10 +184,36 @@ namespace AppAutoClick
             }
             catch (Exception ex)
             {
-                this.run = false;
-                EnableControls();
                 MessageBox.Show("Thực hiện tắt chương trình bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LoggingHelper.Write(ex.Message);
+            }
+        }
+
+        private void CloseProgramThread()
+        {
+            try
+            {
+                Process cmd = new Process();
+                cmd.StartInfo.FileName = "cmd.exe";
+                cmd.StartInfo.RedirectStandardInput = true;
+                cmd.StartInfo.RedirectStandardOutput = true;
+                cmd.StartInfo.CreateNoWindow = true;
+                cmd.StartInfo.UseShellExecute = false;
+                cmd.Start();
+
+                cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+                cmd.StandardInput.Flush();
+                cmd.StandardInput.Close();
+                cmd.WaitForExit();
+
+                Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                if (ex is ThreadAbortException)
+                    return;
+                LoggingHelper.Write(ex.Message);
+                throw new InvalidOperationException("Thực hiện tắt chương trình bị gián đoạn");
             }
         }
 
@@ -171,7 +223,8 @@ namespace AppAutoClick
             {
                 try
                 {
-                    CloseProgram();
+                    this.isSave = false;
+                    CloseProgramThread();
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) && 
@@ -226,6 +279,8 @@ namespace AppAutoClick
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
                     {
                         IntPtr windowRepositoryManagement = FindWindow(null, nameWindowRepositoryManagement);
+                        ShowWindow(windowRepositoryManagement, SW_MAXIMIZE);
+                        Thread.Sleep(4000);
 
                         BlockInput(true);
                         var pointRepositoryManagement = new POINT();
@@ -283,23 +338,35 @@ namespace AppAutoClick
                     this.Invoke(countLabelUpdater);
 
 
-                    CloseProgram();
+                    CloseProgramThread();
                     Thread.Sleep(timeSleep);
+                    while (!this.isSave)
+                    {
+                        Thread.Sleep(2000);
+                    }
                 }
                 catch (Exception ex)
                 {
                     this.run = false;
-                    EnableControls();
-                    MessageBox.Show("Thực hiện Auto bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    LoggingHelper.Write(ex.Message);
+                    this.isSave = false;
+                    EnableControlsThread();
+                    if (ex is InvalidOperationException)
+                        MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else if (ex is ThreadAbortException)
+                        return;
+                    else
+                    {
+                        MessageBox.Show("Thực hiện Auto bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        LoggingHelper.Write(ex.Message);
+                    }
                 }
             }
         }
         private void SaveAsOnNewThread()
         {
-            Thread t = new Thread(SaveAs);
-            t.IsBackground = true;
-            t.Start();
+            autoSave = new Thread(SaveAs);
+            autoSave.IsBackground = true;
+            autoSave.Start();
         }
 
         private void SaveAs()
@@ -336,13 +403,18 @@ namespace AppAutoClick
                 var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, urlFileExcel);
                 dataExcel.ReadFileExcel();
                 Thread.Sleep(2000);
+
+                this.isSave = true;
             }
             catch (Exception ex)
             {
                 this.run = false;
-                EnableControls();
+                this.isSave = false;
+                EnableControlsThread();
                 if(ex is InvalidOperationException)
                     MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else if (ex is ThreadAbortException)
+                    return;
                 else
                 {
                     MessageBox.Show("Thực hiện Save file bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -353,7 +425,7 @@ namespace AppAutoClick
 
         private void SetCountLabel(long count)
         {
-            this.lbCount.Text = count + " Total Actions";
+            this.lbCount.Text = count + " lần";
         }
 
         private void number_KeyPress(object sender, KeyPressEventArgs e)
