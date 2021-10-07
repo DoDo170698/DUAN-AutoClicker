@@ -206,31 +206,36 @@ namespace AppAutoClick
                     {
                         IntPtr windowRepositoryManagement = FindWindow(null, nameWindowRepositoryManagement);
 
+                        BlockInput(true);
                         var pointRepositoryManagement = new POINT();
                         ClientToScreen(windowRepositoryManagement, ref pointRepositoryManagement);
+
                         LeftMouseClick(pointRepositoryManagement.x + 165, pointRepositoryManagement.y + 55);
                         Thread.Sleep(2000);
 
                         LeftMouseClick(pointRepositoryManagement.x + 20, pointRepositoryManagement.y + 100);
                         Thread.Sleep(2000);
+                        BlockInput(false);
                     }
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowSearchEngine))
                     {
                         IntPtr windowSearchEngine = FindWindow(null, nameWindowSearchEngine);
 
+                        BlockInput(true);
                         var pointSearchEngine = new POINT();
                         ClientToScreen(windowSearchEngine, ref pointSearchEngine);
 
                         LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 390);
                         Thread.Sleep(2000);
+                        BlockInput(false);
 
                         var btnSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
 
                         var btnExecute = btnSearchEngines[5];
                         SendMessage(btnExecute, WM_LBUTTONDOWN, 0, IntPtr.Zero);
                         SendMessage(btnExecute, WM_LBUTTONUP, 0, IntPtr.Zero);
-                        Thread.Sleep(5000);
+                        Thread.Sleep(3000);
 
                         var staticSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.STATIC.app.0.2bf8098_r6_ad1").ToList();
 
@@ -265,6 +270,7 @@ namespace AppAutoClick
                     this.run = false;
                     EnableControls();
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoggingHelper.Write(ex.Message);
                 }
             }
         }
@@ -315,6 +321,7 @@ namespace AppAutoClick
                 this.run = false;
                 EnableControls();
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoggingHelper.Write(ex.Message);
             }
         }
 
