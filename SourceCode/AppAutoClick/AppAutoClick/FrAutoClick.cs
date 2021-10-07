@@ -72,8 +72,7 @@ namespace AppAutoClick
             }
             else
             {
-                MessageBoxButtons errorButtons = MessageBoxButtons.OK;
-                MessageBox.Show(messageError, "Error", errorButtons);
+                MessageBox.Show(messageError, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         
@@ -89,35 +88,47 @@ namespace AppAutoClick
             txtHour.Enabled = true;
             txtMinute.Enabled = true;
         }
-
-        private bool IsOpenSoftware(string classWindow, string nameWindow)
-        {
-            IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
-            return hwnd != IntPtr.Zero;
-        }
         private string ValidData()
         {
             if (!File.Exists(pathFileExe))
             {
-                return "Can't start, software path is incorrect";
+                return "Không thể bắt đầu, sai đường dẫn phần mềm";
             }
             var hourStr = txtHour.Text;
             var minuteStr = txtMinute.Text;
             if (string.IsNullOrEmpty(hourStr) || string.IsNullOrEmpty(minuteStr))
             {
-                return "Hours and minutes cannot be left blank";
+                return "Giờ và phút không được để trống";
             }
             var hour = long.Parse(hourStr);
             var minute = long.Parse(minuteStr);
             if (hour == 0 && minute == 0)
             {
-                return "Hours and minutes must have a value";
+                return "Giờ và phút phải có giá trị";
             }
             if (hour > 100 || minute > 59)
             {
-                return "Hours must be less than 100 and minutes must be less than 60";
+                return "Giờ không được lớn hơn 100 và phút không được lớn hơn 60";
+            }
+            if (!Directory.Exists(pathFileExcel))
+            {
+                DialogResult pathFileExcelResult = MessageBox.Show(string.Format("Không tồn tại đường dẫn đến folder '{0}', bạn có muốn tạo folder không?",pathFileExcel),
+                    "Cảnh báo", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (pathFileExcelResult == DialogResult.Yes)
+                {
+                    Directory.CreateDirectory(pathFileExcel);
+                }
+                else if (pathFileExcelResult == DialogResult.No)
+                {
+                    return "Không thể khởi chạy";
+                }
             }
             return string.Empty;
+        }
+        private bool IsOpenSoftware(string classWindow, string nameWindow)
+        {
+            IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
+            return hwnd != IntPtr.Zero;
         }
         private void AutoClickOnNewThread()
         {
@@ -128,20 +139,30 @@ namespace AppAutoClick
 
         private void CloseProgram()
         {
-            Process cmd = new Process();
-            cmd.StartInfo.FileName = "cmd.exe";
-            cmd.StartInfo.RedirectStandardInput = true;
-            cmd.StartInfo.RedirectStandardOutput = true;
-            cmd.StartInfo.CreateNoWindow = true;
-            cmd.StartInfo.UseShellExecute = false;
-            cmd.Start();
+            try
+            {
+                Process cmd = new Process();
+                cmd.StartInfo.FileName = "cmd.exe";
+                cmd.StartInfo.RedirectStandardInput = true;
+                cmd.StartInfo.RedirectStandardOutput = true;
+                cmd.StartInfo.CreateNoWindow = true;
+                cmd.StartInfo.UseShellExecute = false;
+                cmd.Start();
 
-            cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
-            cmd.StandardInput.Flush();
-            cmd.StandardInput.Close();
-            cmd.WaitForExit();
+                cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+                cmd.StandardInput.Flush();
+                cmd.StandardInput.Close();
+                cmd.WaitForExit();
 
-            Thread.Sleep(2000);
+                Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                this.run = false;
+                EnableControls();
+                MessageBox.Show("Thực hiện tắt chương trình bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoggingHelper.Write(ex.Message);
+            }
         }
 
         private void AutoClick()
@@ -271,7 +292,8 @@ namespace AppAutoClick
                 {
                     this.run = false;
                     EnableControls();
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Thực hiện Auto bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoggingHelper.Write(ex.Message);
                 }
             }
         }
@@ -321,7 +343,13 @@ namespace AppAutoClick
             {
                 this.run = false;
                 EnableControls();
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if(ex is InvalidOperationException)
+                    MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
+                    MessageBox.Show("Thực hiện Save file bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoggingHelper.Write(ex.Message);
+                }
             }
         }
 
