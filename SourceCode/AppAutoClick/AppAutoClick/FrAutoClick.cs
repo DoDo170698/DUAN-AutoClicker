@@ -205,6 +205,8 @@ namespace AppAutoClick
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
                     {
                         IntPtr windowRepositoryManagement = FindWindow(null, nameWindowRepositoryManagement);
+                        ShowWindow(windowRepositoryManagement, SW_MAXIMIZE);
+                        Thread.Sleep(4000);
 
                         BlockInput(true);
                         var pointRepositoryManagement = new POINT();
