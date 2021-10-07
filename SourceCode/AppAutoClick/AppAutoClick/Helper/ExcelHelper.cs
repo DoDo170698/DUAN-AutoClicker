@@ -49,7 +49,7 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("ExcelHelper: " + ex.Message);
                 throw new InvalidOperationException("Lỗi tạo file google sheet");
             }
         }
@@ -70,7 +70,7 @@ namespace AppAutoClick.Helper
             }
             catch(Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("GetLastRow: " + ex.Message);
                 throw new InvalidOperationException("Lỗi đọc dữ liệu file google sheet");
             }
         }
@@ -96,7 +96,7 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("GetSheetId: " + ex.Message);
                 throw new InvalidOperationException("Lỗi sử dụng file google sheet");
             }
         }
@@ -111,7 +111,7 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("MakeGoogleSheetDataRangeColumnsZeroBased: " + ex.Message);
                 throw new InvalidOperationException("Lỗi sử dụng file google sheet");
             }
         }
@@ -147,7 +147,7 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("DeleteRowGoogleSheet: " + ex.Message);
                 throw new InvalidOperationException("Lỗi xóa dòng google sheet");
             }
         }
@@ -257,7 +257,7 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("ReadFileExcel: " + ex.Message);
                 throw new InvalidOperationException("Lỗi đọc và ghi dữ liệu file google sheet");
             }
         }
