@@ -21,7 +21,7 @@ namespace AppAutoClick
 {
     public partial class FrAutoClick : Form
     {
-        private bool run = false;
+        private int run = 0; //0 đang tắt, 1 đang bật, 2 đang thực hiện chương trình
         private bool isSave = false;
         private long count = 0;
         private string programName = ConfigurationManager.AppSettings["ProgramName"];
@@ -65,9 +65,9 @@ namespace AppAutoClick
             if (string.IsNullOrEmpty(messageError))
             {
                 timeSleep = new TimeSpan(int.Parse(txtHour.Text), int.Parse(txtMinute.Text), 0);
-                if (!this.run)
+                if (this.run == 0)
                     AutoClickOnNewThread();
-                this.run = true;
+                this.run = 1;
                 DisableControls();
             }
             else
@@ -78,7 +78,15 @@ namespace AppAutoClick
 
         private void StopAutoClicker()
         {
-            this.run = false;
+            if(this.run == 2)
+            {
+                var check = MessageBox.Show("Tiến trình đang thực hiện, bạn có muốn ngắt không?", "Cảnh báo", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                if(check == DialogResult.No)
+                {
+                    return;
+                }
+            }
+            this.run = 0;
             this.isSave = false;
             if (this.autoClick != null)
                 this.autoClick.Abort();
@@ -219,10 +227,11 @@ namespace AppAutoClick
 
         private void AutoClick()
         {
-            while (this.run)
+            while (this.run != 0)
             {
                 try
                 {
+                    this.run = 2;
                     this.isSave = false;
                     CloseProgramThread();
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
@@ -331,23 +340,26 @@ namespace AppAutoClick
                     }
 
 
+
+
+                    CloseProgramThread();
+                    while (this.run != 0 && !this.isSave)
+                    {
+                        Thread.Sleep(1000);
+                    }
+
+                    this.run = 1;
                     this.count++;
                     MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                         SetCountLabel(this.count);
                     });
                     this.Invoke(countLabelUpdater);
 
-
-                    CloseProgramThread();
                     Thread.Sleep(timeSleep);
-                    while (!this.isSave)
-                    {
-                        Thread.Sleep(2000);
-                    }
                 }
                 catch (Exception ex)
                 {
-                    this.run = false;
+                    this.run = 0;
                     this.isSave = false;
                     EnableControlsThread();
                     if (ex is InvalidOperationException)
@@ -373,7 +385,7 @@ namespace AppAutoClick
         {
             try
             {
-                while (!IsOpenSoftware(null, nameWindowSaveAs))
+                while (this.run != 0 && !IsOpenSoftware(null, nameWindowSaveAs))
                 {
                     Thread.Sleep(2000);
                 }
@@ -408,7 +420,7 @@ namespace AppAutoClick
             }
             catch (Exception ex)
             {
-                this.run = false;
+                this.run = 0;
                 this.isSave = false;
                 EnableControlsThread();
                 if(ex is InvalidOperationException)
