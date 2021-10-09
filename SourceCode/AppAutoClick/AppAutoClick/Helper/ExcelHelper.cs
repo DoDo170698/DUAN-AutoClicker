@@ -183,6 +183,17 @@ namespace AppAutoClick.Helper
                 {
                     int rowCount = sheet.LastRowNum; // This may not be valid row count.
                                                      // If first row is table head, i starts from 1
+
+                    DimensionRange dr = new DimensionRange
+                    {
+                        SheetId = sheetId,
+                        Dimension = "ROWS",
+                        StartIndex = 1,
+                        EndIndex = rowCount // adding extra 6000 rows
+                    };
+                    var requestAddRow = new Request { InsertDimension = new InsertDimensionRequest { Range = dr, InheritFromBefore = false } };
+                    requests.Requests.Add(requestAddRow);
+
                     var headers = new List<string>();
                     for (int i = 0; i <= rowCount; i++)
                     {
