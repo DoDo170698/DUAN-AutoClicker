@@ -131,7 +131,7 @@ namespace AppAutoClick.Helper
                                 SheetId = sheetId,
                                 Dimension = "ROWS",
                                 StartIndex = 1,
-                                EndIndex = _lastRow
+                                EndIndex = _lastRow - 1
                             }
                         }
                     };
