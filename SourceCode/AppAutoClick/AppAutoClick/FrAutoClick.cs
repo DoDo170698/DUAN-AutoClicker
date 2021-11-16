@@ -311,7 +311,7 @@ namespace AppAutoClick
                         var pointSearchEngine = new POINT();
                         ClientToScreen(windowSearchEngine, ref pointSearchEngine);
 
-                        LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 390);
+                        LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 380);
                         Thread.Sleep(2000);
                         BlockInput(false);
 
