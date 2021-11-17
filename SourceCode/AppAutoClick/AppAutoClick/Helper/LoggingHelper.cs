@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,8 @@ namespace AppAutoClick.Helper
     {
         public static void Write(string logMessage)
         {
-            var pathFolder = AppDomain.CurrentDomain.BaseDirectory + @"\LoggingFile";
+            string pathFileLog = ConfigurationManager.AppSettings["PathFileLog"];
+            var pathFolder = string.IsNullOrEmpty(pathFileLog) ? AppDomain.CurrentDomain.BaseDirectory : pathFileLog + @"\LoggingFile";
             bool exists = Directory.Exists(pathFolder);
             if (!exists)
                 Directory.CreateDirectory(pathFolder);

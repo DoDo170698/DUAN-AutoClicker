@@ -296,10 +296,10 @@ namespace AppAutoClick
                         ClientToScreen(windowRepositoryManagement, ref pointRepositoryManagement);
 
                         LeftMouseClick(pointRepositoryManagement.x + 165, pointRepositoryManagement.y + 55);
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
 
                         LeftMouseClick(pointRepositoryManagement.x + 20, pointRepositoryManagement.y + 100);
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
                         BlockInput(false);
                     }
 
@@ -312,7 +312,7 @@ namespace AppAutoClick
                         ClientToScreen(windowSearchEngine, ref pointSearchEngine);
 
                         LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 380);
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
                         BlockInput(false);
 
                         var btnSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
