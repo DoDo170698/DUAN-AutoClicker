@@ -231,6 +231,7 @@ namespace AppAutoClick
             {
                 try
                 {
+                    LoggingHelper.Write("App bắt đầu");
                     this.run = 2;
                     this.isSave = false;
                     CloseProgramThread();
@@ -284,6 +285,7 @@ namespace AppAutoClick
                         SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
                         Thread.Sleep(5000);
                     }
+                    LoggingHelper.Write("Đăng nhập thành công");
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
                     {
@@ -302,6 +304,7 @@ namespace AppAutoClick
                         Thread.Sleep(3000);
                         BlockInput(false);
                     }
+                    LoggingHelper.Write("Mở Search Engine thành công");
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowSearchEngine))
                     {
@@ -338,6 +341,7 @@ namespace AppAutoClick
                         SendMessage(btnExport, WM_LBUTTONUP, 0, IntPtr.Zero);
 
                     }
+                    LoggingHelper.Write("Execute dữ liệu thành công");
 
 
 
@@ -354,6 +358,7 @@ namespace AppAutoClick
                         SetCountLabel(this.count);
                     });
                     this.Invoke(countLabelUpdater);
+                    LoggingHelper.Write("Auto kết thúc");
 
                     Thread.Sleep(timeSleep);
                 }
@@ -416,6 +421,7 @@ namespace AppAutoClick
                 dataExcel.ReadFileExcel();
                 Thread.Sleep(2000);
 
+                LoggingHelper.Write("Xuất Excel thành công");
                 this.isSave = true;
             }
             catch (Exception ex)
