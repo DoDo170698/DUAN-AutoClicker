@@ -38,6 +38,8 @@ namespace AppAutoClick
             this.txtMinute = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.lbTimer = new System.Windows.Forms.Label();
+            this.lbTimerCount = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnStart
@@ -141,11 +143,37 @@ namespace AppAutoClick
             this.label4.TabIndex = 8;
             this.label4.Text = "(m)";
             // 
+            // lbTimer
+            // 
+            this.lbTimer.AutoSize = true;
+            this.lbTimer.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbTimer.Location = new System.Drawing.Point(94, 149);
+            this.lbTimer.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.lbTimer.Name = "lbTimer";
+            this.lbTimer.Size = new System.Drawing.Size(103, 17);
+            this.lbTimer.TabIndex = 10;
+            this.lbTimer.Text = "Tiếp tục sau:";
+            this.lbTimer.Visible = false;
+            // 
+            // lbTimerCount
+            // 
+            this.lbTimerCount.AutoSize = true;
+            this.lbTimerCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbTimerCount.Location = new System.Drawing.Point(209, 149);
+            this.lbTimerCount.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.lbTimerCount.Name = "lbTimerCount";
+            this.lbTimerCount.Size = new System.Drawing.Size(16, 17);
+            this.lbTimerCount.TabIndex = 9;
+            this.lbTimerCount.Text = "0";
+            this.lbTimerCount.Visible = false;
+            // 
             // FrAutoClick
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(534, 187);
+            this.ClientSize = new System.Drawing.Size(534, 206);
+            this.Controls.Add(this.lbTimer);
+            this.Controls.Add(this.lbTimerCount);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtMinute);
@@ -174,6 +202,8 @@ namespace AppAutoClick
         private System.Windows.Forms.TextBox txtMinute;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lbTimer;
+        private System.Windows.Forms.Label lbTimerCount;
     }
 }
 

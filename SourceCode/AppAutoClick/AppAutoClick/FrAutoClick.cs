@@ -43,6 +43,8 @@ namespace AppAutoClick
         private TimeSpan timeSleep;
         Thread autoClick;
         Thread autoSave;
+        private System.Windows.Forms.Timer aTimer;
+        private TimeSpan timerCount;
 
         public FrAutoClick()
         {
@@ -93,6 +95,7 @@ namespace AppAutoClick
             if (this.autoSave != null)
                 this.autoSave.Abort();
             EnableControls();
+            CloseCountTimer();
             CloseProgram();
         }
         
@@ -360,6 +363,7 @@ namespace AppAutoClick
                     this.Invoke(countLabelUpdater);
                     LoggingHelper.Write("Auto kết thúc");
 
+                    SetCountTimer(timeSleep);
                     Thread.Sleep(timeSleep);
                 }
                 catch (Exception ex)
@@ -440,6 +444,46 @@ namespace AppAutoClick
                 }
             }
         }
+
+        private void SetCountTimer(TimeSpan _timeSleep)
+        {
+            this.lbTimer.Visible = true;
+            this.lbTimerCount.Visible = true;
+
+            aTimer = new System.Windows.Forms.Timer();
+            aTimer.Tick += new EventHandler(aTimer_Tick);
+            aTimer.Interval = 1000; // 1 second
+            aTimer.Start();
+
+            timerCount = _timeSleep;
+            lbTimerCount.Text = timerCount.ToString(@"hh\:mm\:ss");
+        }
+
+        private void aTimer_Tick(object sender, EventArgs e)
+        {
+
+            timerCount = timerCount.Subtract(TimeSpan.FromSeconds(1));
+
+            if (timerCount == TimeSpan.Zero)
+            {
+                CloseCountTimer();
+            }
+
+            lbTimerCount.Text = timerCount.ToString(@"hh\:mm\:ss");
+
+        }
+
+        private void CloseCountTimer()
+        {
+            if(aTimer != null)
+            {
+                aTimer.Stop();
+                aTimer = null;
+                this.lbTimer.Visible = false;
+                this.lbTimerCount.Visible = false;
+            }
+        }
+
 
         private void SetCountLabel(long count)
         {
