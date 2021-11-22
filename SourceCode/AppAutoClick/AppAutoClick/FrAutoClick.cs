@@ -21,7 +21,8 @@ namespace AppAutoClick
 {
     public partial class FrAutoClick : Form
     {
-        private bool run = false;
+        private int run = 0; //0 đang tắt, 1 đang bật, 2 đang thực hiện chương trình
+        private bool isSave = false;
         private long count = 0;
         private string programName = ConfigurationManager.AppSettings["ProgramName"];
         private string softwareUsername = ConfigurationManager.AppSettings["SoftwareUsername"];
@@ -40,6 +41,10 @@ namespace AppAutoClick
         private string nameWindowSaveAs = "Save As";
 
         private TimeSpan timeSleep;
+        Thread autoClick;
+        Thread autoSave;
+        private System.Windows.Forms.Timer aTimer;
+        private TimeSpan timerCount;
 
         public FrAutoClick()
         {
@@ -53,10 +58,7 @@ namespace AppAutoClick
         }
         private void btnStop_Click(object sender, EventArgs e)
         {
-            this.run = false;
-            this.count = 0;
-            SetCountLabel(this.count);
-            EnableControls();
+            StopAutoClicker();
         }
 
         private void StartAutoClicker()
@@ -65,16 +67,36 @@ namespace AppAutoClick
             if (string.IsNullOrEmpty(messageError))
             {
                 timeSleep = new TimeSpan(int.Parse(txtHour.Text), int.Parse(txtMinute.Text), 0);
-                if (!this.run)
+                if (this.run == 0)
                     AutoClickOnNewThread();
-                this.run = true;
+                this.run = 1;
                 DisableControls();
             }
             else
             {
-                MessageBoxButtons errorButtons = MessageBoxButtons.OK;
-                MessageBox.Show(messageError, "Error", errorButtons);
+                MessageBox.Show(messageError, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void StopAutoClicker()
+        {
+            if(this.run == 2)
+            {
+                var check = MessageBox.Show("Tiến trình đang thực hiện, bạn có muốn ngắt không?", "Cảnh báo", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                if(check == DialogResult.No)
+                {
+                    return;
+                }
+            }
+            this.run = 0;
+            this.isSave = false;
+            if (this.autoClick != null)
+                this.autoClick.Abort();
+            if (this.autoSave != null)
+                this.autoSave.Abort();
+            EnableControls();
+            CloseCountTimer();
+            CloseProgram();
         }
         
         private void DisableControls()
@@ -85,72 +107,137 @@ namespace AppAutoClick
         }
         private void EnableControls()
         {
+            this.count = 0;
+            SetCountLabel(this.count);
             btnStart.Enabled = true;
             txtHour.Enabled = true;
             txtMinute.Enabled = true;
-        }
 
-        private bool IsOpenSoftware(string classWindow, string nameWindow)
+        }
+        private void EnableControlsThread()
         {
-            IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
-            return hwnd != IntPtr.Zero;
+            MethodInvoker enableControls = new MethodInvoker(() => {
+                this.count = 0;
+                SetCountLabel(this.count);
+                btnStart.Enabled = true;
+                txtHour.Enabled = true;
+                txtMinute.Enabled = true;
+            });
+            this.Invoke(enableControls);
         }
         private string ValidData()
         {
             if (!File.Exists(pathFileExe))
             {
-                return "Can't start, software path is incorrect";
+                return "Không thể bắt đầu, sai đường dẫn phần mềm";
             }
             var hourStr = txtHour.Text;
             var minuteStr = txtMinute.Text;
             if (string.IsNullOrEmpty(hourStr) || string.IsNullOrEmpty(minuteStr))
             {
-                return "Hours and minutes cannot be left blank";
+                return "Giờ và phút không được để trống";
             }
             var hour = long.Parse(hourStr);
             var minute = long.Parse(minuteStr);
             if (hour == 0 && minute == 0)
             {
-                return "Hours and minutes must have a value";
+                return "Giờ và phút phải có giá trị";
             }
             if (hour > 100 || minute > 59)
             {
-                return "Hours must be less than 100 and minutes must be less than 60";
+                return "Giờ không được lớn hơn 100 và phút không được lớn hơn 60";
+            }
+            if (!Directory.Exists(pathFileExcel))
+            {
+                DialogResult pathFileExcelResult = MessageBox.Show(string.Format("Không tồn tại đường dẫn đến folder '{0}', bạn có muốn tạo folder không?",pathFileExcel),
+                    "Cảnh báo", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (pathFileExcelResult == DialogResult.Yes)
+                {
+                    Directory.CreateDirectory(pathFileExcel);
+                }
+                else if (pathFileExcelResult == DialogResult.No)
+                {
+                    return "Không thể khởi chạy";
+                }
             }
             return string.Empty;
         }
+        private bool IsOpenSoftware(string classWindow, string nameWindow)
+        {
+            IntPtr hwnd = Win32.FindWindow(classWindow, nameWindow);
+            return hwnd != IntPtr.Zero;
+        }
         private void AutoClickOnNewThread()
         {
-            Thread t = new Thread(AutoClick);
-            t.IsBackground = true;
-            t.Start();
+            autoClick = new Thread(AutoClick);
+            autoClick.IsBackground = true;
+            autoClick.Start();
         }
 
         private void CloseProgram()
         {
-            Process cmd = new Process();
-            cmd.StartInfo.FileName = "cmd.exe";
-            cmd.StartInfo.RedirectStandardInput = true;
-            cmd.StartInfo.RedirectStandardOutput = true;
-            cmd.StartInfo.CreateNoWindow = true;
-            cmd.StartInfo.UseShellExecute = false;
-            cmd.Start();
+            try
+            {
+                Process cmd = new Process();
+                cmd.StartInfo.FileName = "cmd.exe";
+                cmd.StartInfo.RedirectStandardInput = true;
+                cmd.StartInfo.RedirectStandardOutput = true;
+                cmd.StartInfo.CreateNoWindow = true;
+                cmd.StartInfo.UseShellExecute = false;
+                cmd.Start();
 
-            cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
-            cmd.StandardInput.Flush();
-            cmd.StandardInput.Close();
-            cmd.WaitForExit();
+                cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+                cmd.StandardInput.Flush();
+                cmd.StandardInput.Close();
+                cmd.WaitForExit();
 
-            Thread.Sleep(2000);
+                Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Thực hiện tắt chương trình bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoggingHelper.Write(ex.Message);
+            }
+        }
+
+        private void CloseProgramThread()
+        {
+            try
+            {
+                Process cmd = new Process();
+                cmd.StartInfo.FileName = "cmd.exe";
+                cmd.StartInfo.RedirectStandardInput = true;
+                cmd.StartInfo.RedirectStandardOutput = true;
+                cmd.StartInfo.CreateNoWindow = true;
+                cmd.StartInfo.UseShellExecute = false;
+                cmd.Start();
+
+                cmd.StandardInput.WriteLine($"taskkill/im {programName} /f");
+                cmd.StandardInput.Flush();
+                cmd.StandardInput.Close();
+                cmd.WaitForExit();
+
+                Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                if (ex is ThreadAbortException)
+                    return;
+                LoggingHelper.Write(ex.Message);
+                throw new InvalidOperationException("Thực hiện tắt chương trình bị gián đoạn");
+            }
         }
 
         private void AutoClick()
         {
-            while (this.run)
+            while (this.run != 0)
             {
                 try
                 {
-                    CloseProgram();
+                    LoggingHelper.Write("App bắt đầu");
+                    this.run = 2;
+                    this.isSave = false;
+                    CloseProgramThread();
                     if (!IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowReLogin) && 
                         !IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement) && 
@@ -201,29 +288,38 @@ namespace AppAutoClick
                         SendMessage(btnOk, WM_LBUTTONUP, 0, IntPtr.Zero);
                         Thread.Sleep(5000);
                     }
+                    LoggingHelper.Write("Đăng nhập thành công");
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowRepositoryManagement))
                     {
                         IntPtr windowRepositoryManagement = FindWindow(null, nameWindowRepositoryManagement);
+                        ShowWindow(windowRepositoryManagement, SW_MAXIMIZE);
+                        Thread.Sleep(4000);
 
+                        BlockInput(true);
                         var pointRepositoryManagement = new POINT();
                         ClientToScreen(windowRepositoryManagement, ref pointRepositoryManagement);
+
                         LeftMouseClick(pointRepositoryManagement.x + 165, pointRepositoryManagement.y + 55);
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
 
                         LeftMouseClick(pointRepositoryManagement.x + 20, pointRepositoryManagement.y + 100);
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
+                        BlockInput(false);
                     }
+                    LoggingHelper.Write("Mở Search Engine thành công");
 
                     if (IsOpenSoftware("WindowsForms10.Window.8.app.0.2bf8098_r6_ad1", nameWindowSearchEngine))
                     {
                         IntPtr windowSearchEngine = FindWindow(null, nameWindowSearchEngine);
 
+                        BlockInput(true);
                         var pointSearchEngine = new POINT();
                         ClientToScreen(windowSearchEngine, ref pointSearchEngine);
 
-                        LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 390);
-                        Thread.Sleep(2000);
+                        LeftMouseClick(pointSearchEngine.x + 45, pointSearchEngine.y + 380);
+                        Thread.Sleep(3000);
+                        BlockInput(false);
 
                         var btnSearchEngines = EnumAllWindows(windowSearchEngine, "WindowsForms10.Window.b.app.0.2bf8098_r6_ad1").ToList();
 
@@ -248,39 +344,57 @@ namespace AppAutoClick
                         SendMessage(btnExport, WM_LBUTTONUP, 0, IntPtr.Zero);
 
                     }
+                    LoggingHelper.Write("Execute dữ liệu thành công");
 
 
+
+
+                    CloseProgramThread();
+                    while (this.run != 0 && !this.isSave)
+                    {
+                        Thread.Sleep(1000);
+                    }
+
+                    this.run = 1;
                     this.count++;
                     MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                         SetCountLabel(this.count);
                     });
                     this.Invoke(countLabelUpdater);
+                    LoggingHelper.Write("Auto kết thúc");
 
-
-                    CloseProgram();
+                    SetCountTimer(timeSleep);
                     Thread.Sleep(timeSleep);
                 }
                 catch (Exception ex)
                 {
-                    this.run = false;
-                    EnableControls();
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    LoggingHelper.Write(ex.Message);
+                    this.run = 0;
+                    this.isSave = false;
+                    EnableControlsThread();
+                    if (ex is InvalidOperationException)
+                        MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else if (ex is ThreadAbortException)
+                        return;
+                    else
+                    {
+                        MessageBox.Show("Thực hiện Auto bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        LoggingHelper.Write(ex.Message);
+                    }
                 }
             }
         }
         private void SaveAsOnNewThread()
         {
-            Thread t = new Thread(SaveAs);
-            t.IsBackground = true;
-            t.Start();
+            autoSave = new Thread(SaveAs);
+            autoSave.IsBackground = true;
+            autoSave.Start();
         }
 
         private void SaveAs()
         {
             try
             {
-                while (!IsOpenSoftware(null, nameWindowSaveAs))
+                while (this.run != 0 && !IsOpenSoftware(null, nameWindowSaveAs))
                 {
                     Thread.Sleep(2000);
                 }
@@ -310,19 +424,70 @@ namespace AppAutoClick
                 var dataExcel = new ExcelHelper(pathCredential, spreadsheetId, sheetName, urlFileExcel);
                 dataExcel.ReadFileExcel();
                 Thread.Sleep(2000);
+
+                LoggingHelper.Write("Xuất Excel thành công");
+                this.isSave = true;
             }
             catch (Exception ex)
             {
-                this.run = false;
-                EnableControls();
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LoggingHelper.Write(ex.Message);
+                this.run = 0;
+                this.isSave = false;
+                EnableControlsThread();
+                if(ex is InvalidOperationException)
+                    MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else if (ex is ThreadAbortException)
+                    return;
+                else
+                {
+                    MessageBox.Show("Thực hiện Save file bị gián đoạn", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoggingHelper.Write(ex.Message);
+                }
             }
         }
 
+        private void SetCountTimer(TimeSpan _timeSleep)
+        {
+            this.lbTimer.Visible = true;
+            this.lbTimerCount.Visible = true;
+
+            aTimer = new System.Windows.Forms.Timer();
+            aTimer.Tick += new EventHandler(aTimer_Tick);
+            aTimer.Interval = 1000; // 1 second
+            aTimer.Start();
+
+            timerCount = _timeSleep;
+            lbTimerCount.Text = timerCount.ToString(@"hh\:mm\:ss");
+        }
+
+        private void aTimer_Tick(object sender, EventArgs e)
+        {
+
+            timerCount = timerCount.Subtract(TimeSpan.FromSeconds(1));
+
+            if (timerCount == TimeSpan.Zero)
+            {
+                CloseCountTimer();
+            }
+
+            lbTimerCount.Text = timerCount.ToString(@"hh\:mm\:ss");
+
+        }
+
+        private void CloseCountTimer()
+        {
+            if(aTimer != null)
+            {
+                aTimer.Stop();
+                aTimer = null;
+                this.lbTimer.Visible = false;
+                this.lbTimerCount.Visible = false;
+            }
+        }
+
+
         private void SetCountLabel(long count)
         {
-            this.lbCount.Text = count + " Total Actions";
+            this.lbCount.Text = count + " lần";
         }
 
         private void number_KeyPress(object sender, KeyPressEventArgs e)

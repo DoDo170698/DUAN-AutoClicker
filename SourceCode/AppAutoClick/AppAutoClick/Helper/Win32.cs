@@ -85,6 +85,12 @@ namespace AppAutoClick.Helper
         [DllImport("user32.dll")]
         public static extern void LockWorkStation();
 
+        public const int SW_MAXIMIZE = 3;
+        public const int SW_MINIMIZE = 6;
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
         public static string GetControlText(IntPtr hWnd)
@@ -157,12 +163,8 @@ namespace AppAutoClick.Helper
         }
         public static void LeftMouseClick(int xpos, int ypos)
         {
-            BlockInput(true);
-            Thread.Sleep(1000);
             SetCursorPos(xpos, ypos);
-            mouse_event(MOUSEEVENTF_LEFTDOWN, xpos, ypos, 0, 0);
-            mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
-            BlockInput(false);
+            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
         }
 
         public struct Rect

@@ -27,23 +27,31 @@ namespace AppAutoClick.Helper
 
         public ExcelHelper(string credentialFileName, string spreadsheetId, string sheetName, string fileName)
         {
-            var credential = GoogleCredential.FromStream(new FileStream(credentialFileName, FileMode.Open)).CreateScoped(Scopes);
-
-            _sheetsService = new SheetsService(new BaseClientService.Initializer()
+            try
             {
-                HttpClientInitializer = credential,
-                ApplicationName = ApplicationName,
-            });
+                var credential = GoogleCredential.FromStream(new FileStream(credentialFileName, FileMode.Open)).CreateScoped(Scopes);
 
-            _spreadsheetId = spreadsheetId;
-            _fileName = fileName;
+                _sheetsService = new SheetsService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = ApplicationName,
+                });
 
-            _googleSheetParameters = new GoogleSheetParameters();
-            _googleSheetParameters.SheetName = sheetName;
+                _spreadsheetId = spreadsheetId;
+                _fileName = fileName;
 
-            _lastRow = GetLastRow(_googleSheetParameters);
-            _googleSheetParameters.RangeRowStart = _lastRow > 0 ? 1 : 0;
-            _googleSheetParameters.FirstRowIsHeaders = _lastRow <= 0;
+                _googleSheetParameters = new GoogleSheetParameters();
+                _googleSheetParameters.SheetName = sheetName;
+
+                _lastRow = GetLastRow(_googleSheetParameters);
+                _googleSheetParameters.RangeRowStart = _lastRow > 0 ? 1 : 0;
+                _googleSheetParameters.FirstRowIsHeaders = _lastRow <= 0;
+            }
+            catch (Exception ex)
+            {
+                LoggingHelper.Write("ExcelHelper: " + ex.Message);
+                throw new InvalidOperationException("Lỗi tạo file google sheet");
+            }
         }
 
         public int GetLastRow(GoogleSheetParameters googleSheetParameters)
@@ -60,9 +68,10 @@ namespace AppAutoClick.Helper
                 else
                     return 0;
             }
-            catch
+            catch(Exception ex)
             {
-                return 0;
+                LoggingHelper.Write("GetLastRow: " + ex.Message);
+                throw new InvalidOperationException("Lỗi đọc dữ liệu file google sheet");
             }
         }
         private string GetColumnName(int index)
@@ -78,44 +87,68 @@ namespace AppAutoClick.Helper
         }
         private int GetSheetId(SheetsService service, string spreadSheetId, string spreadSheetName)
         {
-            var spreadsheet = service.Spreadsheets.Get(spreadSheetId).Execute();
-            var sheet = spreadsheet.Sheets.FirstOrDefault(s => s.Properties.Title == spreadSheetName);
-            int sheetId = (int)sheet.Properties.SheetId;
-            return sheetId;
+            try
+            {
+                var spreadsheet = service.Spreadsheets.Get(spreadSheetId).Execute();
+                var sheet = spreadsheet.Sheets.FirstOrDefault(s => s.Properties.Title == spreadSheetName);
+                int sheetId = (int)sheet.Properties.SheetId;
+                return sheetId;
+            }
+            catch (Exception ex)
+            {
+                LoggingHelper.Write("GetSheetId: " + ex.Message);
+                throw new InvalidOperationException("Lỗi sử dụng file google sheet");
+            }
         }
 
         private GoogleSheetParameters MakeGoogleSheetDataRangeColumnsZeroBased(GoogleSheetParameters googleSheetParameters)
         {
-            googleSheetParameters.RangeColumnStart = googleSheetParameters.RangeColumnStart;
-            googleSheetParameters.RangeColumnEnd = googleSheetParameters.RangeColumnEnd;
-            return googleSheetParameters;
+            try
+            {
+                googleSheetParameters.RangeColumnStart = googleSheetParameters.RangeColumnStart;
+                googleSheetParameters.RangeColumnEnd = googleSheetParameters.RangeColumnEnd;
+                return googleSheetParameters;
+            }
+            catch (Exception ex)
+            {
+                LoggingHelper.Write("MakeGoogleSheetDataRangeColumnsZeroBased: " + ex.Message);
+                throw new InvalidOperationException("Lỗi sử dụng file google sheet");
+            }
         }
 
         public void DeleteRowGoogleSheet(int sheetId)
         {
-            if(_lastRow > 1)
+            try
             {
-                Request request = new Request()
+                if (_lastRow > 1)
                 {
-                    DeleteDimension = new DeleteDimensionRequest()
+                    Request request = new Request()
                     {
-                        Range = new DimensionRange()
+                        DeleteDimension = new DeleteDimensionRequest()
                         {
-                            SheetId = sheetId,
-                            Dimension = "ROWS",
-                            StartIndex = 1,
-                            EndIndex = _lastRow
+                            Range = new DimensionRange()
+                            {
+                                SheetId = sheetId,
+                                Dimension = "ROWS",
+                                StartIndex = 1,
+                                EndIndex = _lastRow - 1
+                            }
                         }
-                    }
-                };
+                    };
 
-                List<Request> requests = new List<Request>();
-                requests.Add(request);
+                    List<Request> requests = new List<Request>();
+                    requests.Add(request);
 
-                BatchUpdateSpreadsheetRequest deleteRequest = new BatchUpdateSpreadsheetRequest();
-                deleteRequest.Requests = requests;
+                    BatchUpdateSpreadsheetRequest deleteRequest = new BatchUpdateSpreadsheetRequest();
+                    deleteRequest.Requests = requests;
 
-                _sheetsService.Spreadsheets.BatchUpdate(deleteRequest, _spreadsheetId).Execute();
+                    _sheetsService.Spreadsheets.BatchUpdate(deleteRequest, _spreadsheetId).Execute();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingHelper.Write("DeleteRowGoogleSheet: " + ex.Message);
+                throw new InvalidOperationException("Lỗi xóa dòng google sheet");
             }
         }
 
@@ -150,6 +183,17 @@ namespace AppAutoClick.Helper
                 {
                     int rowCount = sheet.LastRowNum; // This may not be valid row count.
                                                      // If first row is table head, i starts from 1
+
+                    DimensionRange dr = new DimensionRange
+                    {
+                        SheetId = sheetId,
+                        Dimension = "ROWS",
+                        StartIndex = 1,
+                        EndIndex = rowCount // adding extra 6000 rows
+                    };
+                    var requestAddRow = new Request { InsertDimension = new InsertDimensionRequest { Range = dr, InheritFromBefore = false } };
+                    requests.Requests.Add(requestAddRow);
+
                     var headers = new List<string>();
                     for (int i = 0; i <= rowCount; i++)
                     {
@@ -224,7 +268,8 @@ namespace AppAutoClick.Helper
             }
             catch (Exception ex)
             {
-                LoggingHelper.Write(ex.Message);
+                LoggingHelper.Write("ReadFileExcel: " + ex.Message);
+                throw new InvalidOperationException("Lỗi đọc và ghi dữ liệu file google sheet");
             }
         }
     }
