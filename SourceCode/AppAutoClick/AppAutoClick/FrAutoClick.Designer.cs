@@ -40,6 +40,7 @@ namespace AppAutoClick
             this.label4 = new System.Windows.Forms.Label();
             this.lbTimer = new System.Windows.Forms.Label();
             this.lbTimerCount = new System.Windows.Forms.Label();
+            this.lbMessenger = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnStart
@@ -167,11 +168,22 @@ namespace AppAutoClick
             this.lbTimerCount.Text = "0";
             this.lbTimerCount.Visible = false;
             // 
+            // lbMessenger
+            // 
+            this.lbMessenger.AutoSize = true;
+            this.lbMessenger.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbMessenger.Location = new System.Drawing.Point(150, 149);
+            this.lbMessenger.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.lbMessenger.Name = "lbMessenger";
+            this.lbMessenger.Size = new System.Drawing.Size(0, 17);
+            this.lbMessenger.TabIndex = 11;
+            // 
             // FrAutoClick
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 206);
+            this.Controls.Add(this.lbMessenger);
             this.Controls.Add(this.lbTimer);
             this.Controls.Add(this.lbTimerCount);
             this.Controls.Add(this.label4);
@@ -204,6 +216,7 @@ namespace AppAutoClick
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label lbTimer;
         private System.Windows.Forms.Label lbTimerCount;
+        private System.Windows.Forms.Label lbMessenger;
     }
 }
 

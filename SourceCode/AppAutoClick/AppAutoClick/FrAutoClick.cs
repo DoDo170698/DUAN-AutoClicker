@@ -95,6 +95,7 @@ namespace AppAutoClick
             if (this.autoSave != null)
                 this.autoSave.Abort();
             EnableControls();
+            SetMessenger();
             CloseCountTimer();
             CloseProgram();
         }
@@ -359,11 +360,11 @@ namespace AppAutoClick
                     this.count++;
                     MethodInvoker countLabelUpdater = new MethodInvoker(() => {
                         SetCountLabel(this.count);
+                        SetCountTimer(timeSleep);
                     });
                     this.Invoke(countLabelUpdater);
                     LoggingHelper.Write("Auto kết thúc");
 
-                    SetCountTimer(timeSleep);
                     Thread.Sleep(timeSleep);
                 }
                 catch (Exception ex)
@@ -394,6 +395,9 @@ namespace AppAutoClick
         {
             try
             {
+                SetMessenger("Hệ thống đang đọc và xuất dữ liệu file Excel ...");
+                LoggingHelper.Write("Bắt đầu đọc và xuất file Excel");
+
                 while (this.run != 0 && !IsOpenSoftware(null, nameWindowSaveAs))
                 {
                     Thread.Sleep(2000);
@@ -425,6 +429,7 @@ namespace AppAutoClick
                 dataExcel.ReadFileExcel();
                 Thread.Sleep(2000);
 
+                SetMessenger();
                 LoggingHelper.Write("Xuất Excel thành công");
                 this.isSave = true;
             }
@@ -433,7 +438,8 @@ namespace AppAutoClick
                 this.run = 0;
                 this.isSave = false;
                 EnableControlsThread();
-                if(ex is InvalidOperationException)
+                SetMessenger();
+                if (ex is InvalidOperationException)
                     MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 else if (ex is ThreadAbortException)
                     return;
@@ -484,6 +490,13 @@ namespace AppAutoClick
             }
         }
 
+        private void SetMessenger(string mess = "")
+        {
+            MethodInvoker action = new MethodInvoker(() => {
+                this.lbMessenger.Text = mess;
+            });
+            this.Invoke(action);
+        }
 
         private void SetCountLabel(long count)
         {
